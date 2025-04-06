@@ -1,0 +1,17 @@
+[font]
+size = 14
+
+[font.normal]
+family = "MesloLGS NF"
+
+[shell]
+program = "/bin/zsh"
+args = ["--login"]
+
+[window]
+decorations = "Buttonless"
+option_as_alt = "OnlyLeft"
+
+
+[env]
+TERM = "alacritty"
