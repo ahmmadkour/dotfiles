@@ -93,7 +93,7 @@
 (set-face-attribute 'fixed-pitch nil :font "Fira Code Retina" :height efs/default-font-size)
 
 ;; Set the variable pitch face
-;(set-face-attribute 'variable-pitch nil :font "Cantarell" :height efs/default-variable-font-size :weight 'regular)
+(set-face-attribute 'variable-pitch nil :font "Cantarell" :height efs/default-variable-font-size :weight 'regular)
 
 ;; Make ESC quit prompts
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
@@ -457,10 +457,16 @@
 (use-package lsp-ui
   :hook (lsp-mode . lsp-ui-mode)
   :custom
-  (lsp-ui-doc-position 'at-point)
+  (lsp-ui-doc-position 'bottom)
   :config
-  (setq lsp-ui-doc-show-with-cursor t)
-  (setq lsp-ui-doc-delay 0.2))
+  (setq lsp-ui-doc-show-with-cursor nil)
+  (setq lsp-ui-doc-delay 0.2)
+  ;; Define a keybinding to manually show documentation
+  (general-define-key
+   :keymaps 'lsp-mode-map
+   :prefix lsp-keymap-prefix
+   "d" 'lsp-ui-doc-show)
+  )
 
 (use-package lsp-treemacs
   :after lsp)
@@ -723,3 +729,8 @@
 
 (setq compilation-environment
       (cons "TERM=xterm-256color" compilation-environment))
+
+;; Remapping modifier keys:
+;; This is to get Option-3 to return '#' and keep right option as it is
+(setq ns-alternate-modifier 'none)
+(setq ns-right-alternate-modifier 'meta)
