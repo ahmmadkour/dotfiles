@@ -170,6 +170,7 @@
   :custom ((doom-modeline-height 15)))
 
 (use-package which-key
+  :defer 0
   :diminish which-key-mode
   :config
   (which-key-mode)
@@ -457,7 +458,7 @@
 (use-package lsp-ui
   :hook (lsp-mode . lsp-ui-mode)
   :custom
-  (lsp-ui-doc-position 'bottom)
+  (lsp-ui-doc-position 'at-point)
   :config
   (setq lsp-ui-doc-show-with-cursor nil)
   (setq lsp-ui-doc-delay 0.2)
@@ -631,8 +632,8 @@
   :custom ((dired-listing-switches "-agho --group-directories-first"))
   :config
   (evil-collection-define-key 'normal 'dired-mode-map
-    "h" 'dired-single-up-directory
-    "l" 'dired-single-buffer))
+    "h" 'dired-up-directory
+    "l" 'dired-find-file))
 
 ;; (use-package dired-single
 ;;   :commands (dired dired-jump))
