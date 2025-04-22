@@ -627,6 +627,8 @@
 
 (use-package dired
   :ensure nil
+  :init
+  (setq dired-kill-when-opening-new-dired-buffer t)
   :commands (dired dired-jump)
   :bind (("C-x C-j" . dired-jump))
   :custom ((dired-listing-switches "-agho --group-directories-first"))
@@ -635,20 +637,20 @@
     "h" 'dired-up-directory
     "l" 'dired-find-file))
 
-;; (use-package dired-single
-;;   :commands (dired dired-jump))
-
 (use-package all-the-icons-dired
   :after dired
   :hook (dired-mode . all-the-icons-dired-mode))
 
+;; TODO: not working
 (use-package dired-open
+  :after dired
   :commands (dired dired-jump)
   :config
   ;; Doesn't work as expected!
   ;;(add-to-list 'dired-open-functions #'dired-open-xdg t)
-  (setq dired-open-extensions '(("png" . "feh")
-                                ("mkv" . "mpv"))))
+  (setq dired-open-extensions '(("png" . "open")
+				("jpg" . "open")
+                                ("mkv" . "open"))))
 
 (use-package dired-hide-dotfiles
   :after dired
