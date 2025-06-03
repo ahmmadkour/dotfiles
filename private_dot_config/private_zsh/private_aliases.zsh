@@ -8,8 +8,6 @@ alias cp='cp -iv'
 alias mv='mv -iv'
 alias rm='rm -iv'
 
-alias emacs='emacs -Q -l ~/.config/emacs/init.el'
-
 alias gs='git status'
 alias ga='git add'
 alias gp='git push'

@@ -6,10 +6,11 @@ if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]
 fi
 
 autoload -U compinit; compinit
+setopt share_history
 
 umask 077
 
-PATH="$HOME/.cargo/bin/:$HOME/go/bin:$PATH"
+PATH="$HOME/.config/emacs/bin/:$HOME/.cargo/bin/:$HOME/go/bin:$PATH"
 PS1='%F{blue}%~ %(?.%F{green}.%F{red})%#%f '
 
 source $ZDOTDIR/aliases.zsh
@@ -28,6 +29,8 @@ export FZF_CTRL_R_OPTS="
 #
 # use Emcas keybindings
 bindkey -e
+bindkey '\e[3~' delete-char
+
 source /opt/homebrew/share/powerlevel10k/powerlevel10k.zsh-theme
 
 # To customize prompt, run `p10k configure` or edit ~/.config/zsh/.p10k.zsh.
