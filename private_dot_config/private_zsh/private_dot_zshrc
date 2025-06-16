@@ -10,7 +10,7 @@ setopt share_history
 
 umask 077
 
-PATH="$HOME/.config/emacs/bin/:$HOME/.cargo/bin/:$HOME/go/bin:$PATH"
+PATH="$HOME/.local/bin:$HOME/.config/emacs/bin/:$HOME/.cargo/bin/:$HOME/go/bin:$PATH"
 PS1='%F{blue}%~ %(?.%F{green}.%F{red})%#%f '
 
 source $ZDOTDIR/aliases.zsh
