@@ -78,3 +78,6 @@
 
 
 ;; ~/.doom.d/config.el
+(setq
+ projectile-project-search-path '("~/Workspace/code")
+ )
