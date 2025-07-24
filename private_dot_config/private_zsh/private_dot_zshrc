@@ -10,6 +10,7 @@ setopt share_history
 
 umask 077
 
+
 PATH="$HOME/.local/bin:$HOME/.config/emacs/bin/:$HOME/.cargo/bin/:$HOME/go/bin:$PATH"
 PS1='%F{blue}%~ %(?.%F{green}.%F{red})%#%f '
 
@@ -37,3 +38,4 @@ source /opt/homebrew/share/powerlevel10k/powerlevel10k.zsh-theme
 [[ ! -f ~/.config/zsh/.p10k.zsh ]] || source ~/.config/zsh/.p10k.zsh
 
 export GOPATH=~/go
+eval $(brew shellenv)
