@@ -4,7 +4,7 @@ size = 14
 [font.normal]
 family = "MesloLGS NF"
 
-[shell]
+[terminal.shell]
 program = "/bin/zsh"
 args = ["--login"]
 
@@ -15,3 +15,5 @@ option_as_alt = "OnlyLeft"
 
 [env]
 TERM = "alacritty"
+
+[terminal]
