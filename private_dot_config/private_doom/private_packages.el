@@ -40,9 +40,6 @@
 ;; (package! builtin-package :pin "1a2b3c4d5e")
 
 
-;; Icon support
-(package! all-the-icons)
-
 ;; Doom's packages are pinned to a specific commit and updated from release to
 ;; release. The `unpin!' macro allows you to unpin single packages...
 ;; (unpin! pinned-package)
@@ -51,5 +48,9 @@
 ;; ...Or *all* packages (NOT RECOMMENDED; will likely break things)
 ;; (unpin! t)
 
+(package! all-the-icons)
 (unpin! org-roam)
 (package! org-roam-ui)
+(package! x509-mode)
+(package! claude-code-ide
+  :recipe (:host github :repo "manzaltu/claude-code-ide.el"))

@@ -21,8 +21,8 @@
 ;; See 'C-h v doom-font' for documentation and more examples of what they
 ;; accept. For example:
 ;;
-;;(setq doom-font (font-spec :family "Fira Code" :size 12 :weight 'semi-light)
-;;      doom-variable-pitch-font (font-spec :family "Fira Sans" :size 13))
+(setq doom-font (font-spec :family "SF Mono" :size 13)
+      doom-variable-pitch-font (font-spec :family "SF Pro Display" :size 13))
 ;;
 ;; If you or Emacs can't find your font, use 'M-x describe-font' to look them
 ;; up, `M-x eval-region' to execute elisp code, and 'M-x doom/reload-font' to
@@ -36,11 +36,11 @@
 
 ;; This determines the style of line numbers in effect. If set to `nil', line
 ;; numbers are disabled. For relative line numbers, set this to `relative'.
-(setq display-line-numbers-type t)
+(setq display-line-numbers-type 'relative)
 
 ;; If you use `org' and don't want your org files in the default location below,
 ;; change `org-directory'. It must be set before org loads!
-(setq org-directory "~/Workspace/org/")
+(setq org-directory "~/Workspace/org")
 (setq org-roam-directory "~/Workspace/org/roam")
 
 
@@ -77,30 +77,34 @@
 ;; they are implemented.
 
 
-;; ~/.doom.d/config.el
-(setq
- projectile-project-search-path '("~/Workspace/code")
- )
+;; projectile
+(setq projectile-project-search-path '("~/Workspace/code"))
 
-(use-package! websocket
-  :after org-roam)
 
-(use-package! org-roam-ui
-  :after org-roam ;; or :after org
-  ;;         normally we'd recommend hooking orui after org-roam, but since org-roam does not have
-  ;;         a hookable mode anymore, you're advised to pick something yourself
-  ;;         if you don't care about startup time, use
-  ;;  :hook (after-init . org-roam-ui-mode)
+;; vterm
+(after! vterm
+  ;; Don't clear the buffer when switching back to it
+  (setq vterm-clear-buffer-on-reenter nil)
+
+  ;; Increase the number of saved scrollback lines
+  (setq vterm-max-scrollback 10000))
+
+
+;; claude code
+(use-package! claude-code-ide
+  :bind ("C-c C-'" . claude-code-ide-menu) ; Set your favorite keybinding
   :config
-  (setq org-roam-ui-sync-theme t
-        org-roam-ui-follow t
-        org-roam-ui-update-on-save t
-        org-roam-ui-open-on-start t))
+  (claude-code-ide-emacs-tools-setup)) ; Optionally enable Emacs MCP tools
 
-(setq gofmt-command "goimports")
-(add-hook 'before-save-hook 'gofmt-before-save)
+
+;; company
+(after! company
+  (setq company-idle-delay 0.2
+        company-minimum-prefix-length 2))
+
 
 ;; Permanently display workspaces *in the tab-bar*
+;; https://discourse.doomemacs.org/t/permanently-display-workspaces-in-the-tab-bar/4088
 (after! persp-mode
   ;; alternative, non-fancy version which only centers the output of +workspace--tabline
   (defun workspaces-formatted ()
@@ -121,3 +125,25 @@ name as well to trigger updates"
 
 ;; need to run this later for it to not break frame size for some reason
 (run-at-time nil nil (cmd! (tab-bar-mode +1)))
+
+
+;; Go configuration
+(setq gofmt-command "goimports")
+(add-hook 'before-save-hook 'gofmt-before-save)
+
+
+;; org-roam-ui
+(use-package! websocket
+  :after org-roam)
+
+(use-package! org-roam-ui
+  :after org-roam ;; or :after org
+  ;;         normally we'd recommend hooking orui after org-roam, but since org-roam does not have
+  ;;         a hookable mode anymore, you're advised to pick something yourself
+  ;;         if you don't care about startup time, use
+  ;;  :hook (after-init . org-roam-ui-mode)
+  :config
+  (setq org-roam-ui-sync-theme t
+        org-roam-ui-follow t
+        org-roam-ui-update-on-save t
+        org-roam-ui-open-on-start t))
