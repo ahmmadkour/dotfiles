@@ -127,9 +127,129 @@ name as well to trigger updates"
 (run-at-time nil nil (cmd! (tab-bar-mode +1)))
 
 
-;; Go configuration
-(setq gofmt-command "goimports")
-(add-hook 'before-save-hook 'gofmt-before-save)
+;; LSP Configuration with full UI features
+(after! lsp-mode  ; Doom macro that runs this config only after lsp-mode loads
+  ;; Performance optimizations
+  (setq lsp-idle-delay 0.1                    ; Wait 0.1 seconds before sending requests (faster response)
+        lsp-log-io nil                        ; Disable LSP communication logging (improves performance)
+        lsp-completion-provider :none         ; Let Doom's completion handle completions instead of LSP
+        lsp-headerline-breadcrumb-enable t    ; Show navigation breadcrumbs at top of buffer
+        lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols) ; Show project path, file name, and current symbols
+        lsp-headerline-breadcrumb-enable-symbol-numbers t ; Number the symbols in breadcrumb
+        
+        ;; Code lens - Show inline info like "5 references", "3 implementations"
+        lsp-lens-enable t                     ; Enable code lens functionality
+        lsp-lens-place-position 'above-line  ; Place code lens above the relevant line
+        
+        ;; Inlay hints - Type annotations and parameter names inline
+        lsp-inlay-hint-enable t               ; Enable type hints and parameter names inline
+        
+        ;; Semantic tokens - Better syntax highlighting based on language server analysis
+        lsp-semantic-tokens-enable t          ; Enable enhanced syntax highlighting
+        lsp-semantic-tokens-honor-refresh-requests t ; Update highlighting when server requests it
+        
+        ;; Modeline - Show LSP info in the modeline
+        lsp-modeline-code-actions-enable t    ; Show available code actions in modeline
+        lsp-modeline-diagnostics-enable t     ; Show error/warning count in modeline
+        lsp-modeline-workspace-status-enable t ; Show LSP server status in modeline
+        
+        ;; Signature help - Function signatures while typing
+        lsp-signature-auto-activate t         ; Automatically show function signatures while typing
+        lsp-signature-render-documentation t) ; Include documentation in signature help
+  
+  ;; Enable inlay hints for all LSP modes
+  (add-hook 'lsp-mode-hook #'lsp-inlay-hints-mode)) ; Automatically enable inlay hints whenever LSP mode starts
+
+(after! lsp-ui
+  ;; Sideline configuration - Right side info panel
+  (setq lsp-ui-sideline-enable t              ; Enable the sideline (right side info panel)
+        lsp-ui-sideline-show-hover t          ; Show hover information in sideline
+        lsp-ui-sideline-show-diagnostics t    ; Show errors/warnings in sideline
+        lsp-ui-sideline-show-code-actions t   ; Show available code actions
+        lsp-ui-sideline-show-symbol t         ; Show symbol information
+        lsp-ui-sideline-ignore-duplicate t    ; Don't show duplicate information
+        lsp-ui-sideline-delay 0.2             ; Wait 0.2 seconds before showing sideline
+        
+        ;; Peek configuration - Preview without leaving current file
+        lsp-ui-peek-enable t                  ; Enable peek functionality
+        lsp-ui-peek-show-directory t          ; Show directory in peek window
+        lsp-ui-peek-peek-height 20           ; Height of peek preview window
+        lsp-ui-peek-list-width 50            ; Width of peek results list
+        
+        ;; Doc configuration - Documentation popups
+        lsp-ui-doc-enable t                   ; Enable documentation popups
+        lsp-ui-doc-position 'at-point        ; Show docs at cursor position
+        lsp-ui-doc-delay 0.5                 ; Wait 0.5 seconds before showing docs
+        lsp-ui-doc-max-width 100             ; Maximum width of doc popup
+        lsp-ui-doc-max-height 20             ; Maximum height of doc popup
+        lsp-ui-doc-show-with-cursor nil      ; Don't show docs when cursor moves
+        lsp-ui-doc-show-with-mouse t         ; Show docs on mouse hover
+        lsp-ui-doc-enhanced-markdown t       ; Better markdown rendering in docs
+        
+        ;; Flycheck integration - Error checking
+        lsp-ui-flycheck-enable t))           ; Integrate with flycheck for error checking
+
+;; Language-specific LSP configurations
+(after! lsp-rust  ; Rust-specific settings
+  (setq lsp-rust-analyzer-cargo-watch-command "clippy"                           ; Use clippy for better linting
+        lsp-rust-analyzer-server-display-inlay-hints t                           ; Enable all inlay hints for Rust
+        lsp-rust-analyzer-display-chaining-hints t                               ; Show types in method chains
+        lsp-rust-analyzer-display-parameter-hints t                              ; Show parameter names
+        lsp-rust-analyzer-display-closure-return-type-hints t                    ; Show closure return types
+        lsp-rust-analyzer-display-reborrow-hints t                               ; Show reborrow hints
+        lsp-rust-analyzer-display-lifetime-elision-hints-enable "skip_trivial")) ; Show lifetime hints except trivial ones
+
+(after! lsp-go  ; Go-specific settings
+  (setq lsp-go-analyses '((fieldalignment . t)  ; Enable static analysis checks:
+                         (nilness . t)          ; - field alignment
+                         (unusedwrite . t)      ; - nil checks
+                         (useany . t))          ; - unused writes, any usage
+        lsp-go-staticcheck t                    ; Enable staticcheck linter
+        lsp-go-use-gofumpt t))                  ; Use gofumpt for formatting (stricter than gofmt)
+
+(after! lsp-javascript  ; JavaScript/TypeScript settings
+  (setq lsp-typescript-preferences-include-package-json-auto-imports "on"  ; Include package.json imports in suggestions
+        lsp-typescript-suggest-auto-imports t))                            ; Suggest automatic imports
+
+(after! lsp-python-ms  ; Python settings
+  (setq lsp-python-ms-auto-install-server t))  ; Automatically install Python language server
+
+;; Go configuration - Fixed to only apply to Go files
+(after! go-mode  ; Only load when go-mode is available
+  (setq gofmt-command "goimports")  ; Use goimports instead of gofmt for auto-imports
+  (add-hook 'go-mode-hook
+            (lambda () (add-hook 'before-save-hook 'gofmt-before-save nil 'local))))  ; Make before-save-hook local to Go files only
+
+;; Enhanced LSP keybindings - Comprehensive key mappings for LSP functions
+(map! :localleader  ; Use local leader key (`,` in Doom)
+      :map (rust-mode-map go-mode-map python-mode-map js-mode-map typescript-mode-map)  ; Apply to specific mode maps
+      :desc "LSP" "l" #'lsp-command-map  ; Access full LSP command map
+      
+      ;; Navigation - Jump to definitions, references, etc.
+      :desc "Find definition" "d" #'lsp-find-definition        ; Jump to where symbol is defined
+      :desc "Find references" "r" #'lsp-find-references        ; Find all references to symbol
+      :desc "Find implementations" "i" #'lsp-find-implementation  ; Find implementations of interface/trait
+      :desc "Find type definition" "t" #'lsp-find-type-definition  ; Jump to type definition
+      
+      ;; Code actions - Refactoring and code improvements
+      :desc "Code actions" "a" #'lsp-execute-code-action      ; Show available code actions (refactoring, fixes)
+      :desc "Rename symbol" "R" #'lsp-rename                  ; Rename symbol across project
+      :desc "Format buffer" "f" #'lsp-format-buffer          ; Format entire buffer
+      :desc "Format region" "F" #'lsp-format-region          ; Format selected region
+      
+      ;; UI toggles - Control LSP UI elements
+      :desc "Toggle sideline" "s" #'lsp-ui-sideline-toggle-symbols-info  ; Toggle right side info panel
+      :desc "Toggle doc" "h" #'lsp-ui-doc-toggle             ; Toggle documentation popup
+      :desc "Toggle inlay hints" "H" #'lsp-inlay-hints-mode  ; Toggle type hints and parameter names
+      
+      ;; Peek functions - Preview without leaving current file
+      :desc "Peek definition" "p d" #'lsp-ui-peek-find-definitions      ; Preview definition in popup
+      :desc "Peek references" "p r" #'lsp-ui-peek-find-references       ; Preview references in popup
+      :desc "Peek implementation" "p i" #'lsp-ui-peek-find-implementation)  ; Preview implementations in popup
+
+;; Global LSP keybindings - Access from anywhere
+(map! :leader
+      :desc "LSP workspace" "c l" #'lsp-command-map)  ; Global access to LSP commands via SPC c l
 
 
 ;; org-roam-ui
