@@ -253,6 +253,9 @@ One note about =general= package, as autoloads fire on functions, and not on var
       "pa" '(projectile-add-known-project :which-key "Add new project")
       "pd" '(projectile-remove-known-project :which-key "Remove new project")
 
+      "g" '(:ignore t :which-key "git")
+      "gg" '(magit-status :which-key "Magit status")
+
       "o" '(:ignore t :which-key "open")
       "ot" '(vterm-toggle :which-key "toggle vterm")
       "oT" '(my/vterm-new :which-key "open vterm")
@@ -453,6 +456,10 @@ If you use =describe-function=, you will not only get the documentation about th
     ([remap describe-variable] . counsel-describe-variable)
     ([remap describe-key] . helpful-key))
 
+  (with-eval-after-load 'helpful
+    (general-define-key
+     :states '(normal visual)
+     "K" #'helpful-at-point))
 
 #+end_src
 
@@ -832,6 +839,11 @@ This snippet adds a hook to =org-mode= buffers so that =my/org-babel-tangle-conf
     (setq persp-mode-prefix-key (kbd "C-c M-p"))
     (persp-mode))
 
+  (with-eval-after-load 'perspective
+    (general-define-key
+      :states '(normal visual motion)
+      :prefix "SPC"
+      "TAB" '(:keymap perspective-map :which-key "perspectives")))
 #+end_src
 
 * Development
@@ -861,6 +873,11 @@ The =lsp-keymap-prefix= setting enables you to define a prefix for where =lsp-mo
     :config
     (lsp-enable-which-key-integration t))
 
+  (with-eval-after-load 'lsp-mode
+    (general-define-key
+     :states '(normal visual)
+     :keymaps 'lsp-mode-map
+     "K" #'lsp-describe-thing-at-point))
 #+end_src
 
 **** lsp-ui
@@ -1026,6 +1043,26 @@ You can use the pyvenv package to use =virtualenv= environments in Emacs.  The =
 
 #+end_src
 
+*** Yaml
+
+Install YAML Lsp server with:
+
+#+begin_src shell
+npm i -g yaml-language-server
+#+end_src
+
+#+begin_src emacs-lisp
+
+  (use-package yaml-mode
+  :mode "\\.ya?ml\\'"
+  :hook (yaml-mode . lsp-deferred))
+  
+#+end_src
+** Editorconfig
+#+begin_src emacs-lisp
+(editorconfig-mode 1)
+#+end_src
+
 ** Company Mode
 
 [[http://company-mode.github.io/][Company Mode]] provides a nicer in-buffer completion interface than =completion-at-point=.  =TAB= now completes the selection and initiates completion at the current location if needed.
@@ -1075,6 +1112,7 @@ You can use the pyvenv package to use =virtualenv= environments in Emacs.  The =
     ;; Use this instead of `projectile-switch-project'
     (define-key projectile-command-map (kbd "p")
   	      #'projectile-persp-switch-project))
+
  #+end_src
 
 ** Magit

@@ -164,6 +164,9 @@
     "pa" '(projectile-add-known-project :which-key "Add new project")
     "pd" '(projectile-remove-known-project :which-key "Remove new project")
 
+    "g" '(:ignore t :which-key "git")
+    "gg" '(magit-status :which-key "Magit status")
+
     "o" '(:ignore t :which-key "open")
     "ot" '(vterm-toggle :which-key "toggle vterm")
     "oT" '(my/vterm-new :which-key "open vterm")
@@ -288,6 +291,11 @@
   ([remap describe-command] . helpful-command)
   ([remap describe-variable] . counsel-describe-variable)
   ([remap describe-key] . helpful-key))
+
+(with-eval-after-load 'helpful
+  (general-define-key
+   :states '(normal visual)
+   "K" #'helpful-at-point))
 
 (use-package hydra
   :defer t)
@@ -573,6 +581,12 @@
   (setq persp-mode-prefix-key (kbd "C-c M-p"))
   (persp-mode))
 
+(with-eval-after-load 'perspective
+  (general-define-key
+    :states '(normal visual motion)
+    :prefix "SPC"
+    "TAB" '(:keymap perspective-map :which-key "perspectives")))
+
 (defun my/lsp-mode-setup ()
   (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
   (lsp-headerline-breadcrumb-mode))
@@ -585,6 +599,12 @@
   (setq lsp-completion-provider :none)
   :config
   (lsp-enable-which-key-integration t))
+
+(with-eval-after-load 'lsp-mode
+  (general-define-key
+   :states '(normal visual)
+   :keymaps 'lsp-mode-map
+   "K" #'lsp-describe-thing-at-point))
 
 (use-package lsp-ui
   :hook (lsp-mode . lsp-ui-mode)
@@ -654,6 +674,12 @@
         lsp-rust-analyzer-cargo-watch-command "clippy" ; optional: lint-on-save
         lsp-rust-analyzer-proc-macro-enable t)
   :hook (rustic-mode . lsp-deferred))
+
+(use-package yaml-mode
+:mode "\\.ya?ml\\'"
+:hook (yaml-mode . lsp-deferred))
+
+(editorconfig-mode 1)
 
 (use-package company
   :after lsp-mode
