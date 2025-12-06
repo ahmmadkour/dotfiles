@@ -481,9 +481,8 @@
       '((emacs-lisp . t)
       (python . t)))
 
-  (push '("conf-unix" . conf-unix) org-src-lang-modes))
+  (push '("conf-unix" . conf-unix) org-src-lang-modes)
 
-(with-eval-after-load 'org
   ;; This is needed as of Org 9.2
   (require 'org-tempo)
 
@@ -493,13 +492,14 @@
 
 ;; Automatically tangle our Emacs.org config file when we save it
 (defun my/org-babel-tangle-config ()
+  "Tangle the Emacs config file if it's the one being saved."
   (when (string-equal (buffer-file-name)
                       (expand-file-name "~/.config/emacs_vanilla/emacs.org"))
     ;; Dynamic scoping to the rescue
     (let ((org-confirm-babel-evaluate nil))
       (org-babel-tangle))))
 
-(add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'my/org-babel-tangle-config)))
+(add-hook 'after-save-hook #'my/org-babel-tangle-config)
 
 (use-package org-roam
   :ensure t
@@ -627,11 +627,11 @@
 
 (use-package lsp-pyright
   :if (executable-find "pyright-langserver")
-  :custom (lsp-pyright-langserver-command "pyright") ;; or basedpyright
   :hook (python-mode . (lambda ()
                          (require 'lsp-pyright)
                          (lsp-deferred))) ; or lsp
   :custom
+  (lsp-pyright-langserver-command "pyright") ;; or basedpyright
   (lsp-pyright-python-executable-cmd "python3")
   ;; Optional trims:
   ;; (lsp-pyright-use-library-code-for-types t)

@@ -693,6 +693,13 @@ We use [[https://github.com/joostkremers/visual-fill-column][visual-fill-column]
 
 To execute or export code in =org-mode= code blocks, you'll need to set up =org-babel-load-languages= for each language you'd like to use.  [[https://orgmode.org/worg/org-contrib/babel/languages.html][This page]] documents all of the languages that you can use with =org-babel=.
 
+*** Structure Templates
+
+Org Mode's [[https://orgmode.org/manual/Structure-Templates.html][structure templates]] feature enables you to quickly insert code blocks into your Org files in combination with =org-tempo= by typing =<= followed by the template name like =el= or =py= and then press =TAB=.  For example, to insert an empty =emacs-lisp= block below, you can type =<el= and press =TAB= to expand into such a block.
+
+You can add more =src= block templates below by copying one of the lines and changing the two strings at the end, the first to be the template name and the second to contain the name of the language [[https://orgmode.org/worg/org-contrib/babel/languages.html][as it is known by Org Babel]].
+
+
 #+begin_src emacs-lisp
 
   (with-eval-after-load 'org
@@ -701,19 +708,8 @@ To execute or export code in =org-mode= code blocks, you'll need to set up =org-
         '((emacs-lisp . t)
         (python . t)))
 
-    (push '("conf-unix" . conf-unix) org-src-lang-modes))
+    (push '("conf-unix" . conf-unix) org-src-lang-modes)
 
-#+end_src
-
-** Structure Templates
-
-Org Mode's [[https://orgmode.org/manual/Structure-Templates.html][structure templates]] feature enables you to quickly insert code blocks into your Org files in combination with =org-tempo= by typing =<= followed by the template name like =el= or =py= and then press =TAB=.  For example, to insert an empty =emacs-lisp= block below, you can type =<el= and press =TAB= to expand into such a block.
-
-You can add more =src= block templates below by copying one of the lines and changing the two strings at the end, the first to be the template name and the second to contain the name of the language [[https://orgmode.org/worg/org-contrib/babel/languages.html][as it is known by Org Babel]].
-
-#+begin_src emacs-lisp
-
-  (with-eval-after-load 'org
     ;; This is needed as of Org 9.2
     (require 'org-tempo)
 
@@ -723,6 +719,7 @@ You can add more =src= block templates below by copying one of the lines and cha
 
 #+end_src
 
+
 ** Auto-tangle Configuration Files
 
 This snippet adds a hook to =org-mode= buffers so that =my/org-babel-tangle-config= gets executed each time such a buffer gets saved.  This function checks to see if the file being saved is the emacs.org file you're looking at right now, and if so, automatically exports the configuration here to the associated output files.
@@ -731,13 +728,14 @@ This snippet adds a hook to =org-mode= buffers so that =my/org-babel-tangle-conf
 
   ;; Automatically tangle our Emacs.org config file when we save it
   (defun my/org-babel-tangle-config ()
+    "Tangle the Emacs config file if it's the one being saved."
     (when (string-equal (buffer-file-name)
                         (expand-file-name "~/.config/emacs_vanilla/emacs.org"))
       ;; Dynamic scoping to the rescue
       (let ((org-confirm-babel-evaluate nil))
         (org-babel-tangle))))
 
-  (add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'my/org-babel-tangle-config)))
+  (add-hook 'after-save-hook #'my/org-babel-tangle-config)
 
 #+end_src
 
@@ -975,11 +973,11 @@ Install the language server before trying =lsp-mode=
 
   (use-package lsp-pyright
     :if (executable-find "pyright-langserver")
-    :custom (lsp-pyright-langserver-command "pyright") ;; or basedpyright
     :hook (python-mode . (lambda ()
                            (require 'lsp-pyright)
                            (lsp-deferred))) ; or lsp
     :custom
+    (lsp-pyright-langserver-command "pyright") ;; or basedpyright
     (lsp-pyright-python-executable-cmd "python3")
     ;; Optional trims:
     ;; (lsp-pyright-use-library-code-for-types t)
