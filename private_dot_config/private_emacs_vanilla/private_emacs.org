@@ -510,7 +510,7 @@ The =my/org-font-setup= function configures various text faces to tweak the size
       (set-face-attribute (car face) nil :font "Cantarell" :weight 'regular :height (cdr face)))
 
     ;; Ensure that anything that should be fixed-pitch in Org files appears that way
-    (set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch)
+    (set-face-attribute 'org-block nil :inherit 'fixed-pitch)
     (set-face-attribute 'org-code nil   :inherit '(shadow fixed-pitch))
     (set-face-attribute 'org-table nil   :inherit '(shadow fixed-pitch))
     (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
@@ -839,7 +839,7 @@ This snippet adds a hook to =org-mode= buffers so that =my/org-babel-tangle-conf
 
   (with-eval-after-load 'perspective
     (general-define-key
-      :states '(normal visual motion)
+      :states '(normal visual)
       :prefix "SPC"
       "TAB" '(:keymap perspective-map :which-key "perspectives")))
 #+end_src
@@ -850,32 +850,142 @@ This snippet adds a hook to =org-mode= buffers so that =my/org-babel-tangle-conf
 For language Server documetnations checkout [[https://emacs-lsp.github.io/lsp-mode/page/languages/][this]]
 
 *** IDE Features with lsp-mode
+
+**** Treesitter
+
+Modes that use tree-sitter are all named =<major-mode>-ts-mode=
+To quickly check if Emacs supports your pet major mode out of the box: typing =C-h a -ts-mode$= should do the trick.
+
+To coax Emacs into using the new major modes by default, we use =major-mode-remap-alist=
+
+Important commands:
+- =M-x treesit-install-language-grammar=
+- Variable =treesit-language-source-alist=
+- Check if a grammer is working: =(treesit-language-available-p 'python)=
+- To check which major mode we are using: =M-: major-mode=
+
+References:
+- https://www.masteringemacs.org/article/how-to-get-started-tree-sitter
+- https://www.ovistoica.com/blog/2024-7-05-modern-emacs-typescript-web-tsx-config
+
+
+#+begin_src emacs-lisp
+
+  (use-package treesit
+      :ensure nil
+      :mode (("\\.tsx\\'" . tsx-ts-mode)
+             ("\\.js\\'"  . typescript-ts-mode)
+             ("\\.mjs\\'" . typescript-ts-mode)
+             ("\\.mts\\'" . typescript-ts-mode)
+             ("\\.cjs\\'" . typescript-ts-mode)
+             ("\\.ts\\'"  . typescript-ts-mode)
+             ("\\.jsx\\'" . tsx-ts-mode)
+             ("\\.rs\\'" . rust-ts-mode)
+             ("\\.json\\'" .  json-ts-mode)
+             ("\\.Dockerfile\\'" . dockerfile-ts-mode)
+             ("\\.prisma\\'" . prisma-ts-mode)
+             ("\\.py\\'" . python-ts-mode)
+             )
+      :preface
+      (defun os/setup-install-grammars ()
+        "Install Tree-sitter grammars if they are absent."
+        (interactive)
+        (dolist (grammar
+                 '((css . ("https://github.com/tree-sitter/tree-sitter-css" "v0.20.0"))
+                   (bash "https://github.com/tree-sitter/tree-sitter-bash")
+                   (html . ("https://github.com/tree-sitter/tree-sitter-html" "v0.20.1"))
+                   (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript" "v0.21.2" "src"))
+                   (json . ("https://github.com/tree-sitter/tree-sitter-json" "v0.20.2"))
+                   (python . ("https://github.com/tree-sitter/tree-sitter-python" "v0.25.0"))
+                   (go "https://github.com/tree-sitter/tree-sitter-go" "v0.20.0")
+                   (rust "https://github.com/tree-sitter/tree-sitter-rust" "v0.24.0")
+                   (markdown "https://github.com/ikatyang/tree-sitter-markdown")
+                   (make "https://github.com/alemuller/tree-sitter-make")
+                   (elisp "https://github.com/Wilfred/tree-sitter-elisp")
+                   (cmake "https://github.com/uyha/tree-sitter-cmake")
+                   (c "https://github.com/tree-sitter/tree-sitter-c")
+                   (cpp "https://github.com/tree-sitter/tree-sitter-cpp")
+                   (toml "https://github.com/tree-sitter/tree-sitter-toml")
+                   (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.23.2" "tsx/src"))
+                   (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.23.2" "typescript/src"))
+                   (yaml . ("https://github.com/ikatyang/tree-sitter-yaml" "v0.5.0"))
+                   (prisma "https://github.com/victorhqc/tree-sitter-prisma")))
+          (add-to-list 'treesit-language-source-alist grammar)
+          ;; Only install `grammar' if we don't already have it
+          ;; installed. However, if you want to *update* a grammar then
+          ;; this obviously prevents that from happening.
+          (unless (treesit-language-available-p (car grammar))
+            (treesit-install-language-grammar (car grammar)))))
+
+      ;; Optional, but recommended. Tree-sitter enabled major modes are
+      ;; distinct from their ordinary counterparts.
+      ;;
+      ;; You can remap major modes with `major-mode-remap-alist'. Note
+      ;; that this does *not* extend to hooks! Make sure you migrate them
+      ;; also
+      (dolist (mapping
+               '((python-mode . python-ts-mode)
+                 (css-mode . css-ts-mode)
+                 (rust-mode . rust-ts-mode)
+                 (typescript-mode . typescript-ts-mode)
+                 (js-mode . typescript-ts-mode)
+                 (js2-mode . typescript-ts-mode)
+                 (c-mode . c-ts-mode)
+                 (c++-mode . c++-ts-mode)
+                 (c-or-c++-mode . c-or-c++-ts-mode)
+                 (bash-mode . bash-ts-mode)
+                 (css-mode . css-ts-mode)
+                 (json-mode . json-ts-mode)
+                 (js-json-mode . json-ts-mode)
+                 (sh-mode . bash-ts-mode)
+                 (sh-base-mode . bash-ts-mode)))
+        (add-to-list 'major-mode-remap-alist mapping))
+      :config
+      (os/setup-install-grammars))
+
+#+end_src
+
 **** lsp-mode
 
 We use the excellent [[https://emacs-lsp.github.io/lsp-mode/][lsp-mode]] to enable IDE-like functionality for many different programming languages via "language servers" that speak the [[https://microsoft.github.io/language-server-protocol/][Language Server Protocol]].
 
 The =lsp-keymap-prefix= setting enables you to define a prefix for where =lsp-mode='s default keybindings will be added.
 
+To check if Emacs is built with tree-sitter library, run =(treesit-available-p)=
+
+References:
+- https://emacs-lsp.github.io/lsp-mode/page/installation/
+- https://cgit.git.savannah.gnu.org/cgit/emacs.git/tree/admin/notes/tree-sitter/starter-guide?h=feature/tree-sitter
+
+***** Installation
+#+begin_src shell
+  brew install tree-sitter
+  brew install tree-sitter-cli # Optionsl
+#+end_src
+
+
 #+begin_src emacs-lisp
 
-  (defun my/lsp-mode-setup ()
-    (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
-    (lsp-headerline-breadcrumb-mode))
-
   (use-package lsp-mode
-    :commands (lsp lsp-deferred)
-    :hook (lsp-mode . my/lsp-mode-setup)
     :init
-    (setq lsp-keymap-prefix "C-c l")  ;; Or 'C-l', 's-l'
-    (setq lsp-completion-provider :none)
-    :config
-    (lsp-enable-which-key-integration t))
+    ;; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
+    (setq lsp-keymap-prefix "C-c l")
+    :hook (;; replace XXX-mode with concrete major-mode(e. g. python-mode)
+           ;;(XXX-mode . lsp-deferred)
+           ((tsx-ts-mode
+             typescript-ts-mode
+             python-ts-mode
+             js-ts-mode) . lsp-deferred)
+           ;; if you want which-key integration
+           (lsp-mode . lsp-enable-which-key-integration))
+    :commands lsp lsp-deferred)
 
   (with-eval-after-load 'lsp-mode
     (general-define-key
      :states '(normal visual)
      :keymaps 'lsp-mode-map
      "K" #'lsp-describe-thing-at-point))
+
 #+end_src
 
 **** lsp-ui
@@ -885,11 +995,7 @@ The =lsp-keymap-prefix= setting enables you to define a prefix for where =lsp-mo
 #+begin_src emacs-lisp
 
   (use-package lsp-ui
-    :hook (lsp-mode . lsp-ui-mode)
-    :custom
-    ;; lsp-ui-doc-enable nil      ; or keep, set lsp-ui-doc-delay
-    ;; lsp-ui-sideline-enable nil ; or set lsp-ui-sideline-show-diagnostics t/f
-    (lsp-ui-doc-position 'bottom))
+    :commands lsp-ui-mode)
 
 #+end_src
 
@@ -908,7 +1014,7 @@ This package is built on the [[https://github.com/Alexander-Miller/treemacs][tre
 #+begin_src emacs-lisp
 
   (use-package lsp-treemacs
-    :after lsp)
+    :commands lsp-treemacs-errors-list)
 
 #+end_src
 
@@ -924,47 +1030,41 @@ Try these commands with =M-x=:
 #+begin_src emacs-lisp
 
   (use-package lsp-ivy
-    :after lsp)
+    :commands lsp-ivy-workspace-symbol)
 
 #+end_src
 
-*** TypeScript
-
-This is a basic configuration for the TypeScript language so that =.ts= files activate =typescript-mode= when opened.  We're also adding a hook to =typescript-mode-hook= to call =lsp-deferred= so that we activate =lsp-mode= to get LSP features every time we edit TypeScript code.
+**** flycheck
 
 #+begin_src emacs-lisp
-
-  (use-package typescript-mode
-    :mode "\\.ts\\'"
-    :hook (typescript-mode . lsp-deferred)
-    :config
-    (setq typescript-indent-level 2))
-
+  (use-package flycheck
+    :ensure t
+    :init (global-flycheck-mode)
+    :bind (:map flycheck-mode-map
+                ("M-n" . flycheck-next-error) ; optional but recommended error navigation
+                ("M-p" . flycheck-previous-error)))
 #+end_src
 
-*Important note!*  For =lsp-mode= to work with TypeScript (and JavaScript) you will need to install a language server on your machine.  If you have Node.js installed, the easiest way to do that is by running the following command:
-
-#+begin_src shell :tangle no
-
-npm install -g typescript-language-server typescript
-
-#+end_src
-
-This will install the [[https://github.com/theia-ide/typescript-language-server][typescript-language-server]] and the TypeScript compiler package.
+*** Typescript
+The server is automatically installed https://emacs-lsp.github.io/lsp-mode/page/lsp-typescript/
 
 *** Python
 
- Check out [[https://emacs-lsp.github.io/lsp-pyright/][the =pyright= configuration]] in the =lsp-mode= documentation for more details.
-
-=pyright= is the current "best default" for most projects: faster, stronger type analysis, great multi-root support, and actively maintained.
+=pyright= is the current "best default" for most projects.
 
 Other alternatives, =pylsp= is lighter and extensible via plugins (rope, yapf/black/isort, pylint/mypy/ pydocstyle) but its analysis is less thorough and slower on large codebases.
 
+References:
+- https://microsoft.github.io/pyright/#/installation
+- https://emacs-lsp.github.io/lsp-pyright/
+
+
 Install the language server before trying =lsp-mode=
+
 
 #+begin_src sh :tangle no
 
-  npm i -g pyright (or pip install pyright if you prefer the Python wheel)
+  pipx install pyright
 
 #+end_src
 
@@ -972,10 +1072,11 @@ Install the language server before trying =lsp-mode=
 #+begin_src emacs-lisp
 
   (use-package lsp-pyright
-    :if (executable-find "pyright-langserver")
+    :ensure t
+    :custom (lsp-pyright-langserver-command "pyright") ;; or basedpyright
     :hook (python-mode . (lambda ()
-                           (require 'lsp-pyright)
-                           (lsp-deferred))) ; or lsp
+                            (require 'lsp-pyright)
+                            (lsp-deferred)))  ; or lsp
     :custom
     (lsp-pyright-langserver-command "pyright") ;; or basedpyright
     (lsp-pyright-python-executable-cmd "python3")
@@ -983,18 +1084,6 @@ Install the language server before trying =lsp-mode=
     ;; (lsp-pyright-use-library-code-for-types t)
     ;; (lsp-pyright-typechecking-mode "basic") ; or "strict"/"off"
     )
-
-  (use-package python-mode
-    :ensure t
-    :hook (python-mode . lsp-deferred)
-    :custom
-    ;; NOTE: Set these if Python 3 is called "python3" on your system!
-    (python-shell-interpreter "python3"))
-    ;; (dap-python-executable "python3")
-    ;;(dap-python-debugger 'debugpy)
-    ;;:config
-    ;;(require 'dap-python))
-
 
 #+end_src
 
@@ -1011,33 +1100,37 @@ You can use the pyvenv package to use =virtualenv= environments in Emacs.  The =
 
 *** Go
 
+#+begin_src shell
+
+  go install golang.org/x/tools/gopls@latest
+
+#+end_src
+
 #+begin_src emacs-lisp
 
-  (use-package go-mode
-    :mode "\\.go\\'"
-    :hook ((go-mode . lsp-deferred)
-           (before-save . gofmt-before-save))
-    :config
-    (setq gofmt-command "goimports"))  ;; gofmt replacement that also fixes imports
+  (setq lsp-go-analyses '((shadow . t)
+                        (simplifycompositelit . :json-false)))
 
 #+end_src
 
 *** Rust
 
 #+begin_src emacs-lisp
-  ;; Install tools: rustup toolchain install stable
-  ;;                rustup component add rust-analyzer rustfmt clippy
-  ;;                # or standalone rust-analyzer in PATH
+
+  (use-package rust-mode
+    :ensure t
+    :init
+    (setq rust-mode-treesitter-derive t))
 
   (use-package rustic
-    :mode ("\\.rs\\'" . rustic-mode)
+    :ensure t
+    :after (rust-mode)
     :config
-    (setq rustic-lsp-client 'lsp-mode          ;; use lsp-mode
-          rustic-format-on-save t              ;; rustfmt on save
-          lsp-rust-analyzer-server-command '("rust-analyzer")
-          lsp-rust-analyzer-cargo-watch-command "clippy" ; optional: lint-on-save
-          lsp-rust-analyzer-proc-macro-enable t)
-    :hook (rustic-mode . lsp-deferred))
+    (setq rustic-format-on-save nil)
+    :custom
+    (rustic-cargo-use-last-stored-arguments t))
+
+  (setq rustic-analyzer-command '("~/.cargo/bin/rust-analyzer"))
 
 #+end_src
 
@@ -1046,16 +1139,12 @@ You can use the pyvenv package to use =virtualenv= environments in Emacs.  The =
 Install YAML Lsp server with:
 
 #+begin_src shell
-npm i -g yaml-language-server
+
+  npm i -g yaml-language-server
+
 #+end_src
 
-#+begin_src emacs-lisp
 
-  (use-package yaml-mode
-  :mode "\\.ya?ml\\'"
-  :hook (yaml-mode . lsp-deferred))
-  
-#+end_src
 ** Editorconfig
 #+begin_src emacs-lisp
 (editorconfig-mode 1)
