@@ -178,6 +178,8 @@ This section configures basic UI settings that remove unneeded elements to make 
 
 [[https://github.com/emacs-evil/evil-collection][evil-collection]] is used to automatically configure various Emacs modes with Vi-like keybindings for evil-mode.
 
+Keybindings follows [[https://github.com/doomemacs/doomemacs/blob/master/modules/config/default/+evil-bindings.el][doom]] keybindings.
+
 One note about =general= package, as autoloads fire on functions, and not on variables, sometime we need to ensure the map is loaded before using it in the keymap of the general package. 
 
 #+begin_src  emacs-lisp
@@ -186,16 +188,56 @@ One note about =general= package, as autoloads fire on functions, and not on var
   (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
   (global-set-key (kbd "s-f") #'swiper)
 
-  (defun my/open-config-dir ()
-    "Open file picker in my Emacs config directory."
+  (defun my/yank-buffer-path (&optional root)
+    "Copy the current buffer's path to the kill ring."
+    (interactive)
+    (if-let* ((filename (or (buffer-file-name (buffer-base-buffer))
+                            (bound-and-true-p list-buffers-directory))))
+        (let ((path (abbreviate-file-name
+                     (if root
+                         (file-relative-name filename root)
+                       filename))))
+          (kill-new path)
+          (if (string= path (car kill-ring))
+              (message "Copied path: %s" path)
+            (user-error "Couldn't copy filename in current buffer")))
+      (error "Couldn't find filename in current buffer")))
+
+  (defun my/yank-buffer-path-relative-to-project (&optional include-root)
+    "Copy the current buffer's path to the kill ring.
+  With non-nil prefix INCLUDE-ROOT, also include the project's root."
+    (interactive "P")
+    (my/yank-buffer-path
+     (if include-root
+         (file-name-directory (directory-file-name (projectile-project-root)))
+       (projectile-project-root))))
+
+  (defun my/find-file-in-private-config ()
+    "Find file in Emacs private config directory."
     (interactive)
     (let ((default-directory (expand-file-name "~/.config/emacs_vanilla/")))
       (call-interactively (if (fboundp 'counsel-find-file)
                             #'counsel-find-file
                           #'find-file))))
 
+  (defun my/browse-in-emacsd ()
+    "Browse files from `user-emacs-directory'."
+    (interactive)
+    (let ((default-directory (expand-file-name user-emacs-directory)))
+      (call-interactively (if (fboundp 'counsel-find-file)
+                            #'counsel-find-file
+                          #'find-file))))
+
+  (defun my/find-file-in-emacsd  ()
+    "Find a file under `user-emacs-directory', recursively."
+    (interactive)
+    (let ((default-directory (expand-file-name user-emacs-directory)))
+      (call-interactively (if (fboundp 'counsel-file-jump)
+                            #'counsel-file-jump
+                           (user-error "counsel-file-jump not available")))))
+
   (defun my/open-roam-dir ()
-    "Open file picker in my Emacs config directory."
+    "Find file in Roam directory."
     (interactive)
     (let ((default-directory (expand-file-name "~/Workspace/org/roam")))
       (call-interactively (if (fboundp 'counsel-find-file)
@@ -208,6 +250,7 @@ One note about =general= package, as autoloads fire on functions, and not on var
     (let ((default-directory (expand-file-name "~/Workspace/org/roam")))
       (counsel-rg "" default-directory)))
 
+
   (use-package general
     :after evil
     :config
@@ -217,49 +260,65 @@ One note about =general= package, as autoloads fire on functions, and not on var
       :global-prefix "C-SPC")
 
     (my/leader-keys
-      "h" '(:keymap help-map :which-key "help")
+      "h"  '(:keymap help-map   :which-key "help")
 
-      "t"  '(:ignore t :which-key "toggles")
+      "t"  '(:ignore t          :which-key "toggles")
       "tt" '(counsel-load-theme :which-key "choose theme")
       "."  'find-file
 
-      "f"  '(:ignore t :which-key "files")
-      "fs"  '(save-buffer :which-key "save buffer")
+      "f"   '(:ignore t                               :which-key "file")
+      "fc"  '(editorconfig-find-current-editorconfig  :which-key "Open project editorconfig")
+      "fd"  '(dired                                   :which-key "Find directory")
+      ;; TODO "D"  '(my/delete-this-file                  :which-key "Delete this file")
+      "fe"  '(my/find-file-in-emacsd                  :which-key "Find file in emacs.d")
+      "fE"  '(my/browse-in-emacsd                     :which-key "Browse emacs.d")
+      "ff"  '(find-file                               :which-key "Find file")
+      "fF"  '(counsel-file-jump                       :which-key "Find file from here")
+      ;; TODO (:when (modulep! :config literate)
+      ;;  :desc "Open heading in literate config" "h" #'+literate/find-heading)
+      "fl"  '(locate                                  :which-key "Locate file")
+      "fp"  '(:ignore t                               :which-key "emacs config")
+      "fpo" '(my/find-file-in-private-config          :which-key "Find file in private config")
+      "fpt" '(org-babel-tangle                        :which-key "Tangle config file")
+      ;; TODO "P"  '(my/open-private-config                :which-key "Browse private config")
+      "fr"  '(counsel-recentf                         :which-key "Recent files")
+      ;; TODO "R" '(my/move-this-file                     :which-key "Rename/move file")
+      "fs"  '(basic-save-buffer                       :which-key "Save file")
+      "fS"  '(write-file                              :which-key "Save file as...")
+      ;; TODO "u" '(my/sudo-find-file                     :which-key "Sudo find file")
+      ;; TODO "U" '(my/sudo-this-file                     :which-key "Sudo this file")
+      "fy"  '(my/yank-buffer-path                     :which-key "Yank file path")
+      "fY"  '(my/yank-buffer-path-relative-to-project :which-key "Yank file path from project")
 
-      "fp" '(:ignore t :which-key "emacs config")
-      "fpo" '(my/open-config-dir :which-key "open config dir")
-      "fpt" '(org-babel-tangle :which-key "tangle config file")
-
-      "b" '(:ignore t :which-key "buffer")
-      "b[" '(previous-buffer :which-key "previous buffer")
-      "b]" '(next-buffer :which-key "next buffer")
-      "bB" '(switch-to-buffer :which-key "switch buffer")
+      "b"  '(:ignore t           :which-key "buffer")
+      "b[" '(previous-buffer     :which-key "previous buffer")
+      "b]" '(next-buffer         :which-key "next buffer")
+      "bB" '(switch-to-buffer    :which-key "switch buffer")
       "bd" '(kill-current-buffer :which-key "kill buffer")
-      "bs" '(save-buffer :which-key "save buffer")
+      "bs" '(save-buffer         :which-key "save buffer")
 
-      "n" '(:ignore t :which-key "notes")
-
-      "nr" '(:ignore t :which-key "roam")
-      "nrn" '(org-roam-capture :which-key "Capture to node")
-      "nrf" '(org-roam-node-find :which-key "Find node")
-      "nri" '(org-roam-node-insert :which-key "Insert node")
+      "n"   '(:ignore t              :which-key "notes")
+      "nr"  '(:ignore t              :which-key "roam")
+      "nrn" '(org-roam-capture       :which-key "Capture to node")
+      "nrf" '(org-roam-node-find     :which-key "Find node")
+      "nri" '(org-roam-node-insert   :which-key "Insert node")
       "nrr" '(org-roam-buffer-toggle :which-key "Toggle roam buffer")
-      "nf" '(my/open-roam-dir :which-key "Find file in notes")
-      "ns" '(my/org-roam-search :which-key "Search notes")
+      "nf"  '(my/open-roam-dir       :which-key "Find file in notes")
+      "ns"  '(my/org-roam-search     :which-key "Search notes")
 
-      "p" '(:ignore t :which-key "project")
+      "p"  '(:ignore t                       :which-key "project")
       "pp" '(projectile-persp-switch-project :which-key "Switch project")
-      "pf" '(projectile-find-file :which-key "Find file in project")
-      "pa" '(projectile-add-known-project :which-key "Add new project")
+      "pf" '(projectile-find-file            :which-key "Find file in project")
+      "pa" '(projectile-add-known-project    :which-key "Add new project")
       "pd" '(projectile-remove-known-project :which-key "Remove new project")
 
-      "g" '(:ignore t :which-key "git")
+      "g"  '(:ignore t    :which-key "git")
       "gg" '(magit-status :which-key "Magit status")
 
-      "o" '(:ignore t :which-key "open")
+      "o"  '(:ignore t    :which-key "open")
       "ot" '(vterm-toggle :which-key "toggle vterm")
       "oT" '(my/vterm-new :which-key "open vterm")
-      "o-" '(dired-jump :which-key "Dired")
+      "o-" '(dired-jump   :which-key "Dired")
 
       "w" '(:keymap evil-window-map :which-key "windows")))
       
