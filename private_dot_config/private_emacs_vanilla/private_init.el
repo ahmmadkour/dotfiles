@@ -633,16 +633,12 @@ With non-nil prefix INCLUDE-ROOT, also include the project's root."
    "s-0"     'my/persp-switch-to-0)
   :config
   (my/leader-keys
-    "," '(persp-counsel-switch-buffer :which-key "persp switch buffer"))
+    "," '(persp-counsel-switch-buffer :which-key "persp switch buffer")
+    "TAB" '(:keymap perspective-map :which-key "perspectives")
+    "TAB d" '(persp-kill :which-key "persp-kill"))
   :init
   (setq persp-mode-prefix-key (kbd "C-c M-p"))
   (persp-mode))
-
-(with-eval-after-load 'perspective
-  (general-define-key
-    :states '(normal visual)
-    :prefix "SPC"
-    "TAB" '(:keymap perspective-map :which-key "perspectives")))
 
 (use-package treesit
     :ensure nil
@@ -907,4 +903,4 @@ With non-nil prefix INCLUDE-ROOT, also include the project's root."
     "H" 'dired-hide-dotfiles-mode))
 
 ;; Make gc pauses faster by decreasing the threshold.
-(setq gc-cons-threshold (* 10 1000 1000))
+(setq gc-cons-threshold (* 20 1000 1000))
