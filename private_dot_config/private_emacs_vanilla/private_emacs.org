@@ -1051,6 +1051,8 @@ References:
 #+begin_src emacs-lisp
 
   (use-package lsp-ui
+    :custom
+    (lsp-ui-sideline-diagnostic-max-lines 5)
     :commands lsp-ui-mode)
 
 #+end_src

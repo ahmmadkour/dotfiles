@@ -733,6 +733,8 @@ With non-nil prefix INCLUDE-ROOT, also include the project's root."
    "K" #'lsp-describe-thing-at-point))
 
 (use-package lsp-ui
+  :custom
+  (lsp-ui-sideline-diagnostic-max-lines 5)
   :commands lsp-ui-mode)
 
 (use-package lsp-treemacs
