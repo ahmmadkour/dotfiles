@@ -1425,6 +1425,40 @@ Install YAML Lsp server with:
 
 #+end_src
 
+** Format on Save (per language)
+
+[[https://github.com/radian-software/apheleia][apheleia]] runs formatters on save with minimal disruption. It works well with LSP and is fast.
+
+Install the formatter binaries once:
+- Go: =gofmt= (comes with Go)
+- TypeScript/JS: =prettier=
+- Python: =black=
+- Rust: =rustfmt= (comes with Rust toolchain)
+
+#+begin_src emacs-lisp
+
+  (use-package apheleia
+    :init
+    (apheleia-global-mode +1)
+    :config
+    ;; Map major modes to formatters
+    (setf (alist-get 'gofmt apheleia-formatters)
+          '("gofmt"))
+    (setf (alist-get 'prettier apheleia-formatters)
+          '("prettier" "--stdin-filepath" filepath))
+    (setf (alist-get 'black apheleia-formatters)
+          '("black" "-q" "-"))
+    (setf (alist-get 'rustfmt apheleia-formatters)
+          '("rustfmt" "--emit" "stdout"))
+
+    (setf (alist-get 'go-ts-mode apheleia-mode-alist) 'gofmt)
+    (setf (alist-get 'typescript-ts-mode apheleia-mode-alist) 'prettier)
+    (setf (alist-get 'tsx-ts-mode apheleia-mode-alist) 'prettier)
+    (setf (alist-get 'python-ts-mode apheleia-mode-alist) 'black)
+    (setf (alist-get 'rust-ts-mode apheleia-mode-alist) 'rustfmt))
+
+#+end_src
+
 ** Projectile
 
 [[https://projectile.mx/][Projectile]] is a project management library for Emacs which makes it a lot easier to navigate around code projects for various languages.
