@@ -795,9 +795,11 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
            ("\\.jsx\\'" . tsx-ts-mode)
            ("\\.rs\\'" . rust-ts-mode)
            ("\\.json\\'" .  json-ts-mode)
-           ("\\.Dockerfile\\'" . dockerfile-ts-mode)
+           ("Dockerfile\\'" . dockerfile-ts-mode)
            ("\\.prisma\\'" . prisma-ts-mode)
            ("\\.py\\'" . python-ts-mode)
+           ("\\.go\\'" . go-ts-mode)
+           ("\\.ya?ml\\'" . yaml-ts-mode)
            )
     :preface
     (defun os/setup-install-grammars ()
@@ -850,6 +852,9 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
                (css-mode . css-ts-mode)
                (json-mode . json-ts-mode)
                (js-json-mode . json-ts-mode)
+               (yaml-mode . yaml-ts-mode)
+               (go-mode . go-ts-mode)
+               (dockerfile-mode . dockerfile-ts-mode)
                (sh-mode . bash-ts-mode)
                (sh-base-mode . bash-ts-mode)))
       (add-to-list 'major-mode-remap-alist mapping))
@@ -860,26 +865,67 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
   :init
   ;; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
   (setq lsp-keymap-prefix "C-c l")
+  :custom
+  (lsp-enable-snippet t)
+  (lsp-headerline-breadcrumb-enable t)
+  (lsp-modeline-diagnostics-enable t)
+  (lsp-modeline-code-actions-enable t)
+  (lsp-completion-provider :capf)
+  (lsp-idle-delay 0.2)
+  (lsp-eldoc-enable-hover nil)
+  (lsp-signature-auto-activate nil)
   :hook (;; replace XXX-mode with concrete major-mode(e. g. python-mode)
          ;;(XXX-mode . lsp-deferred)
          ((tsx-ts-mode
            typescript-ts-mode
            python-ts-mode
-           js-ts-mode) . lsp-deferred)
+           js-ts-mode
+           go-ts-mode
+           rust-ts-mode
+           c-ts-mode
+           c++-ts-mode
+           bash-ts-mode
+           css-ts-mode
+           html-ts-mode
+           json-ts-mode
+           yaml-ts-mode
+           dockerfile-ts-mode) . lsp-deferred)
          ;; if you want which-key integration
          (lsp-mode . lsp-enable-which-key-integration))
+  :config
+  (defun my/lsp-enable-inlay-hints ()
+    "Enable inlay hints only when the server supports them."
+    (when (and (fboundp 'lsp-inlay-hints-mode)
+               (lsp-feature? "textDocument/inlayHint"))
+      (lsp-inlay-hints-mode 1)))
+  (add-hook 'lsp-after-initialize-hook #'my/lsp-enable-inlay-hints)
   :commands lsp lsp-deferred)
 
 (with-eval-after-load 'lsp-mode
+  (defun my/lsp-describe-thing-at-point-focus ()
+    "Describe symbol at point and focus the LSP help window."
+    (interactive)
+    (lsp-describe-thing-at-point)
+    (let ((win (get-buffer-window "*lsp-help*" 0)))
+      (when (window-live-p win)
+        (select-window win))))
   (general-define-key
    :states '(normal visual)
    :keymaps 'lsp-mode-map
-   "K" #'lsp-describe-thing-at-point))
+   "K" #'my/lsp-describe-thing-at-point-focus))
 
 (use-package lsp-ui
+  :hook (lsp-mode . lsp-ui-mode)
   :custom
-  (lsp-ui-sideline-diagnostic-max-lines 5)
+  (lsp-ui-doc-enable t)
   (lsp-ui-doc-delay 0.1)                         ;; show doc quickly
+  (lsp-ui-doc-position 'at-point)
+  (lsp-ui-doc-show-with-cursor t)
+  (lsp-ui-doc-show-with-mouse t)
+  (lsp-ui-sideline-show-hover t)
+  (lsp-ui-sideline-show-code-actions t)
+  (lsp-ui-sideline-ignore-duplicate t)
+  (lsp-ui-sideline-diagnostic-max-lines 5)
   :commands lsp-ui-mode)
 
 (use-package lsp-treemacs
@@ -897,10 +943,9 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
 
 (use-package lsp-pyright
   :ensure t
-  :custom (lsp-pyright-langserver-command "pyright") ;; or basedpyright
-  :hook (python-mode . (lambda ()
-                          (require 'lsp-pyright)
-                          (lsp-deferred)))  ; or lsp
+  :hook (python-ts-mode . (lambda ()
+                            (require 'lsp-pyright)
+                            (lsp-deferred)))  ; or lsp
   :custom
   (lsp-pyright-langserver-command "pyright") ;; or basedpyright
   (lsp-pyright-python-executable-cmd "python3")
