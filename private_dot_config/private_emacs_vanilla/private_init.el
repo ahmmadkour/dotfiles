@@ -993,6 +993,26 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
 (use-package company-box
   :hook (company-mode . company-box-mode))
 
+(use-package apheleia
+  :init
+  (apheleia-global-mode +1)
+  :config
+  ;; Map major modes to formatters
+  (setf (alist-get 'gofmt apheleia-formatters)
+        '("gofmt"))
+  (setf (alist-get 'prettier apheleia-formatters)
+        '("prettier" "--stdin-filepath" filepath))
+  (setf (alist-get 'black apheleia-formatters)
+        '("black" "-q" "-"))
+  (setf (alist-get 'rustfmt apheleia-formatters)
+        '("rustfmt" "--emit" "stdout"))
+
+  (setf (alist-get 'go-ts-mode apheleia-mode-alist) 'gofmt)
+  (setf (alist-get 'typescript-ts-mode apheleia-mode-alist) 'prettier)
+  (setf (alist-get 'tsx-ts-mode apheleia-mode-alist) 'prettier)
+  (setf (alist-get 'python-ts-mode apheleia-mode-alist) 'black)
+  (setf (alist-get 'rust-ts-mode apheleia-mode-alist) 'rustfmt))
+
 (use-package projectile
   :diminish projectile-mode
   :config
