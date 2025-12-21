@@ -71,6 +71,12 @@
 ;; Set up the visible bell
 (setq visible-bell t)
 
+;; Better on-type helpers
+(electric-pair-mode 1)        ; Auto-close brackets/quotes
+(show-paren-mode 1)           ; Highlight matching brackets
+(global-hl-line-mode 1)       ; Highlight current line
+(delete-selection-mode 1)     ; Typing replaces selection
+
 (column-number-mode)
 (global-display-line-numbers-mode t)
 
