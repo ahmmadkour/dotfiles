@@ -94,166 +94,305 @@
 (set-face-attribute 'variable-pitch nil :font "Cantarell" :height my/default-variable-font-size :weight 'regular)
 
 ;; Make ESC quit prompts
-(global-set-key (kbd "<escape>") 'keyboard-escape-quit)
-(global-set-key (kbd "s-f") #'swiper)
+  (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+  (global-set-key (kbd "s-f") #'swiper)
 
-(defun my/yank-buffer-path (&optional root)
-  "Copy the current buffer's path to the kill ring."
-  (interactive)
-  (if-let* ((filename (or (buffer-file-name (buffer-base-buffer))
-                          (bound-and-true-p list-buffers-directory))))
-      (let ((path (abbreviate-file-name
-                   (if root
-                       (file-relative-name filename root)
-                     filename))))
-        (kill-new path)
-        (if (string= path (car kill-ring))
-            (message "Copied path: %s" path)
-          (user-error "Couldn't copy filename in current buffer")))
-    (error "Couldn't find filename in current buffer")))
+  (defun my/yank-buffer-path (&optional root)
+    "Copy the current buffer's path to the kill ring."
+    (interactive)
+    (if-let* ((filename (or (buffer-file-name (buffer-base-buffer))
+                            (bound-and-true-p list-buffers-directory))))
+        (let ((path (abbreviate-file-name
+                     (if root
+                         (file-relative-name filename root)
+                       filename))))
+          (kill-new path)
+          (if (string= path (car kill-ring))
+              (message "Copied path: %s" path)
+            (user-error "Couldn't copy filename in current buffer")))
+      (error "Couldn't find filename in current buffer")))
 
-(defun my/yank-buffer-path-relative-to-project (&optional include-root)
-  "Copy the current buffer's path to the kill ring.
-With non-nil prefix INCLUDE-ROOT, also include the project's root."
+  (defun my/yank-buffer-path-relative-to-project (&optional include-root)
+    "Copy the current buffer's path to the kill ring.
+  With non-nil prefix INCLUDE-ROOT, also include the project's root."
+    (interactive "P")
+    (my/yank-buffer-path
+     (if include-root
+         (file-name-directory (directory-file-name (projectile-project-root)))
+       (projectile-project-root))))
+
+  (defun my/find-file-in-private-config ()
+    "Find file in Emacs private config directory."
+    (interactive)
+    (let ((default-directory (expand-file-name "~/.config/emacs_vanilla/")))
+      (call-interactively (if (fboundp 'counsel-find-file)
+                            #'counsel-find-file
+                          #'find-file))))
+
+  (defun my/browse-in-emacsd ()
+    "Browse files from `user-emacs-directory'."
+    (interactive)
+    (let ((default-directory (expand-file-name user-emacs-directory)))
+      (call-interactively (if (fboundp 'counsel-find-file)
+                            #'counsel-find-file
+                          #'find-file))))
+
+  (defun my/find-file-in-emacsd  ()
+    "Find a file under `user-emacs-directory', recursively."
+    (interactive)
+    (let ((default-directory (expand-file-name user-emacs-directory)))
+      (call-interactively (if (fboundp 'counsel-file-jump)
+                            #'counsel-file-jump
+                           (user-error "counsel-file-jump not available")))))
+
+  (defun my/open-roam-dir ()
+    "Find file in Roam directory."
+    (interactive)
+    (let ((default-directory (expand-file-name "~/Workspace/org/roam")))
+      (call-interactively (if (fboundp 'counsel-find-file)
+                            #'counsel-find-file
+                          #'find-file))))
+
+  (defun my/org-roam-search ()
+    "Ripgrep search in Org-roam notes with Ivy results."
+    (interactive)
+    (let ((default-directory (expand-file-name "~/Workspace/org/roam")))
+      (counsel-rg "" default-directory)))
+
+(defun my/search-project (&optional arg)
+  "Conduct a text search in the current project root.
+If prefix ARG is set, include ignored/hidden files.
+
+Replaces Doom Emacs-specific dispatch with standard package checks."
   (interactive "P")
-  (my/yank-buffer-path
-   (if include-root
-       (file-name-directory (directory-file-name (projectile-project-root)))
-     (projectile-project-root))))
-
-(defun my/find-file-in-private-config ()
-  "Find file in Emacs private config directory."
-  (interactive)
-  (let ((default-directory (expand-file-name "~/.config/emacs_vanilla/")))
-    (call-interactively (if (fboundp 'counsel-find-file)
-                          #'counsel-find-file
-                        #'find-file))))
-
-(defun my/browse-in-emacsd ()
-  "Browse files from `user-emacs-directory'."
-  (interactive)
-  (let ((default-directory (expand-file-name user-emacs-directory)))
-    (call-interactively (if (fboundp 'counsel-find-file)
-                          #'counsel-find-file
-                        #'find-file))))
-
-(defun my/find-file-in-emacsd  ()
-  "Find a file under `user-emacs-directory', recursively."
-  (interactive)
-  (let ((default-directory (expand-file-name user-emacs-directory)))
-    (call-interactively (if (fboundp 'counsel-file-jump)
-                          #'counsel-file-jump
-                         (user-error "counsel-file-jump not available")))))
-
-(defun my/open-roam-dir ()
-  "Find file in Roam directory."
-  (interactive)
-  (let ((default-directory (expand-file-name "~/Workspace/org/roam")))
-    (call-interactively (if (fboundp 'counsel-find-file)
-                          #'counsel-find-file
-                        #'find-file))))
-
-(defun my/org-roam-search ()
-  "Ripgrep search in Org-roam notes with Ivy results."
-  (interactive)
-  (let ((default-directory (expand-file-name "~/Workspace/org/roam")))
-    (counsel-rg "" default-directory)))
+  (let* ((projectile-project-root nil)
+         (current-prefix-arg (unless (eq arg 'other) arg))
+         (default-directory
+           (if (eq arg 'other)
+               (if-let* ((projects (projectile-relevant-known-projects)))
+                   (completing-read "Search project: " projects nil t)
+                 (user-error "There are no known projects"))
+             default-directory)))
+    (call-interactively
+     (cond ((and (featurep 'ivy) (fboundp 'swiper-helm-project))
+            #'swiper-helm-project) ; Standard Ivy/Swiper search (often combined)
+           ((and (featurep 'helm) (fboundp 'helm-project-do-ag))
+            #'helm-project-do-ag) ; Standard Helm search (using Ag or similar)
+           ((and (featurep 'vertico) (fboundp 'consult-ripgrep))
+            #'consult-ripgrep)    ; Standard Vertico/Consult search
+           ((fboundp 'projectile-ripgrep)
+            #'projectile-ripgrep) ; Fallback to Projectile's ripgrep integration
+           (t (user-error "No project search tool available (requires Swiper, Helm, Consult, or projectile-ripgrep)"))))))
 
 
-(use-package general
-  :after evil
-  :config
-  (general-create-definer my/leader-keys
-    :keymaps '(normal insert visual emacs)
-    :prefix "SPC"
-    :global-prefix "C-SPC")
+  (use-package general
+    :after evil
+    :config
+    (general-create-definer my/leader-keys
+      :keymaps '(normal insert visual emacs)
+      :prefix "SPC"
+      :global-prefix "C-SPC")
 
-  (my/leader-keys
-    "h"  '(:keymap help-map   :which-key "help")
+    (my/leader-keys
+      "h"  '(:keymap help-map   :which-key "help")
 
-    "t"  '(:ignore t          :which-key "toggles")
-    "tt" '(counsel-load-theme :which-key "choose theme")
-    "."  'find-file
+      "/" '(my/search-project :which-key "Search project")
 
-    "f"   '(:ignore t                               :which-key "file")
-    "fc"  '(editorconfig-find-current-editorconfig  :which-key "Open project editorconfig")
-    "fd"  '(dired                                   :which-key "Find directory")
-    ;; TODO "D"  '(my/delete-this-file                  :which-key "Delete this file")
-    "fe"  '(my/find-file-in-emacsd                  :which-key "Find file in emacs.d")
-    "fE"  '(my/browse-in-emacsd                     :which-key "Browse emacs.d")
-    "ff"  '(find-file                               :which-key "Find file")
-    "fF"  '(counsel-file-jump                       :which-key "Find file from here")
-    ;; TODO (:when (modulep! :config literate)
-    ;;  :desc "Open heading in literate config" "h" #'+literate/find-heading)
-    "fl"  '(locate                                  :which-key "Locate file")
-    "fp"  '(:ignore t                               :which-key "emacs config")
-    "fpo" '(my/find-file-in-private-config          :which-key "Find file in private config")
-    "fpt" '(org-babel-tangle                        :which-key "Tangle config file")
-    ;; TODO "P"  '(my/open-private-config                :which-key "Browse private config")
-    "fr"  '(counsel-recentf                         :which-key "Recent files")
-    ;; TODO "R" '(my/move-this-file                     :which-key "Rename/move file")
-    "fs"  '(basic-save-buffer                       :which-key "Save file")
-    "fS"  '(write-file                              :which-key "Save file as...")
-    ;; TODO "u" '(my/sudo-find-file                     :which-key "Sudo find file")
-    ;; TODO "U" '(my/sudo-this-file                     :which-key "Sudo this file")
-    "fy"  '(my/yank-buffer-path                     :which-key "Yank file path")
-    "fY"  '(my/yank-buffer-path-relative-to-project :which-key "Yank file path from project")
+      "t"  '(:ignore t          :which-key "toggles")
+      "tt" '(counsel-load-theme :which-key "choose theme")
+      "."  'find-file
 
-    "b"  '(:ignore t           :which-key "buffer")
-    "b[" '(previous-buffer     :which-key "previous buffer")
-    "b]" '(next-buffer         :which-key "next buffer")
-    "bB" '(switch-to-buffer    :which-key "switch buffer")
-    "bd" '(kill-current-buffer :which-key "kill buffer")
-    "bs" '(save-buffer         :which-key "save buffer")
 
-    "n"   '(:ignore t              :which-key "notes")
-    "nr"  '(:ignore t              :which-key "roam")
-    "nrn" '(org-roam-capture       :which-key "Capture to node")
-    "nrf" '(org-roam-node-find     :which-key "Find node")
-    "nri" '(org-roam-node-insert   :which-key "Insert node")
-    "nrr" '(org-roam-buffer-toggle :which-key "Toggle roam buffer")
-    "nf"  '(my/open-roam-dir       :which-key "Find file in notes")
-    "ns"  '(my/org-roam-search     :which-key "Search notes")
+      "f"   '(:ignore t                               :which-key "file")
+      "fc"  '(editorconfig-find-current-editorconfig  :which-key "Open project editorconfig")
+      "fd"  '(dired                                   :which-key "Find directory")
+      ;; TODO "D"  '(my/delete-this-file                  :which-key "Delete this file")
+      "fe"  '(my/find-file-in-emacsd                  :which-key "Find file in emacs.d")
+      "fE"  '(my/browse-in-emacsd                     :which-key "Browse emacs.d")
+      "ff"  '(find-file                               :which-key "Find file")
+      "fF"  '(counsel-file-jump                       :which-key "Find file from here")
+      ;; TODO (:when (modulep! :config literate)
+      ;;  :desc "Open heading in literate config" "h" #'+literate/find-heading)
+      "fl"  '(locate                                  :which-key "Locate file")
+      "fp"  '(:ignore t                               :which-key "emacs config")
+      "fpo" '(my/find-file-in-private-config          :which-key "Find file in private config")
+      "fpt" '(org-babel-tangle                        :which-key "Tangle config file")
+      ;; TODO "P"  '(my/open-private-config                :which-key "Browse private config")
+      "fr"  '(counsel-recentf                         :which-key "Recent files")
+      ;; TODO "R" '(my/move-this-file                     :which-key "Rename/move file")
+      "fs"  '(basic-save-buffer                       :which-key "Save file")
+      "fS"  '(write-file                              :which-key "Save file as...")
+      ;; TODO "u" '(my/sudo-find-file                     :which-key "Sudo find file")
+      ;; TODO "U" '(my/sudo-this-file                     :which-key "Sudo this file")
+      "fy"  '(my/yank-buffer-path                     :which-key "Yank file path")
+      "fY"  '(my/yank-buffer-path-relative-to-project :which-key "Yank file path from project")
 
-    "p"  '(:ignore t                       :which-key "project")
-    "pp" '(projectile-persp-switch-project :which-key "Switch project")
-    "pf" '(projectile-find-file            :which-key "Find file in project")
-    "pa" '(projectile-add-known-project    :which-key "Add new project")
-    "pd" '(projectile-remove-known-project :which-key "Remove new project")
+      "b"  '(:ignore t           :which-key "buffer")
+      ;; TODO "b-" '(doom/toggle-narrow-buffer          :which-key "Toggle narrowing")
+      "b[" '(previous-buffer                    :which-key "Previous buffer")
+      "b]" '(next-buffer                        :which-key "Next buffer")
+      ;; TODO (:when (modulep! :ui workspaces)
+      ;; TODO "bb" '(persp-switch-to-buffer               :which-key "Switch workspace buffer")
+      ;; TODO "bB" '(switch-to-buffer                     :which-key "Switch buffer")
+      ;; TODO "bI" '(+ibuffer/open-for-current-workspace :which-key "ibuffer workspace")
+      ;; TODO (:unless (modulep! :ui workspaces)
+      ;; TODO "bb" '(switch-to-buffer :which-key "Switch buffer")
+      "bB" '(switch-to-buffer                   :which-key "switch buffer")
+      "bc" '(clone-indirect-buffer              :which-key "Clone buffer")
+      "bC" '(clone-indirect-buffer-other-window :which-key "Clone buffer other window")
+      "bd" '(kill-current-buffer                :which-key "Kill buffer")
+      "bi" '(ibuffer                            :which-key "ibuffer")
+      "bk" '(kill-current-buffer                :which-key "Kill buffer")
+      ;;"bK" TODO '(doom/kill-all-buffers              :which-key "Kill all buffers")
+      "bl" '(evil-switch-to-windows-last-buffer :which-key "Switch to last buffer")
+      "bm" '(bookmark-set                       :which-key "Set bookmark")
+      "bM" '(bookmark-delete                    :which-key "Delete bookmark")
+      "bn" '(next-buffer                        :which-key "Next buffer")
+      "bN" '(evil-buffer-new                    :which-key "New empty buffer")
+      "bO" '(persp-kill-other-buffers           :which-key "Kill other buffers")
+      "bp" '(previous-buffer                    :which-key "Previous buffer")
+      "br" '(revert-buffer                      :which-key "Revert buffer")
+      "bR" '(rename-buffer                      :which-key "Rename buffer")
+      "bs" '(basic-save-buffer                  :which-key "Save buffer")
+      "bS" '(evil-write-all                     :which-key "Save all buffers")
+      ;;"bu" TODO '(doom/sudo-save-buffer            :which-key "Save buffer as root")
+      ;;"bx" TODO '(doom/open-scratch-buffer         :which-key "Pop up scratch buffer")
+      ;;"bX" TODO '(doom/switch-to-scratch-buffer    :which-key "Switch to scratch buffer")
+      "by" '(+default/yank-buffer-contents      :which-key "Yank buffer")
+      "bz" '(bury-buffer                        :which-key "Bury buffer")
+      ;;"bZ" TODO '(doom/kill-buried-buffers           :which-key "Kill buried buffers")
 
-    "g"  '(:ignore t    :which-key "git")
-    "gg" '(magit-status :which-key "Magit status")
 
-    "o"  '(:ignore t    :which-key "open")
-    "ot" '(vterm-toggle :which-key "toggle vterm")
-    "oT" '(my/vterm-new :which-key "open vterm")
-    "o-" '(dired-jump   :which-key "Dired")
+      "c"  '(:ignore t                                 :which-key "code")
+      ;;(:when (modulep! :tools lsp -eglot)
+      "ca" '(lsp-execute-code-action                   :which-key "LSP Execute code action")
+      "co" '(lsp-organize-imports                      :which-key "LSP Organize imports")
+      ;; OTOD "cl" '(+default/lsp-command-map                  :which-key "LSP")
+      "cr" '(lsp-rename                                :which-key "LSP Rename")
+      "cS" '(lsp-treemacs-symbols                      :which-key "Symbols")
+      ;;(:when (modulep! :completion ivy)
+      "cj" '(lsp-ivy-workspace-symbol                  :which-key "Jump to symbol in current workspace")
+      "cJ" '(lsp-ivy-global-workspace-symbol           :which-key "Jump to symbol in any workspace")
+      ;;(:when (modulep! :completion helm)
+      ;; "cj"  '(helm-lsp-workspace-symbol                 :which-key "Jump to symbol in current workspace")
+      ;; "cJ"  '(helm-lsp-global-workspace-symbol          :which-key "Jump to symbol in any workspace")
+      ;;(:when (modulep! :completion vertico)
+      ;; "cj"   #'consult-lsp-symbols                         :which-key "Jump to symbol in current workspace")
+      ;; "cJ"   (cmd!! #'consult-lsp-symbols 'all-workspaces) :which-key "Jump to symbol in any workspace")
+      ;;(:when (modulep! :ui treemacs +lsp)
+      "cX" '(lsp-treemacs-errors-list                :which-key "Errors list")
+      "cy" '(lsp-treemacs-call-hierarchy             :which-key "Incoming call hierarchy")
+      ;; TODO "cY" '((cmd!! #'lsp-treemacs-call-hierarchy t) :which-key "Outgoing call hierarchy")
+      ;; TODO "cR" '((cmd!! #'lsp-treemacs-references t)     :which-key "References tree")
+      ;;(:when (modulep! :tools lsp +eglot)
+      ;; TODO "ca" '(eglot-code-actions :which-key "LSP Execute code action")
+      ;; TODO "cr" '(eglot-rename :which-key "LSP Rename")
+      ;; TODO "cj" '(eglot-find-declaration :which-key "LSP Find declaration")
+      ;;(:when (modulep! :completion vertico)
+      ;;"cj" '(consult-eglot-symbols :which-key "Jump to symbol in current workspace")
+      "cc" '(compile                                 :which-key "Compile")
+      "cC" '(recompile                               :which-key "Recompile")
+      ;; TODO "cd" '(+lookup/definition                      :which-key "Jump to definition")
+      ;; TODO "cD" '(+lookup/references                      :which-key "Jump to references")
+      ;; TODO "ce" '(+eval/buffer-or-region                  :which-key "Evaluate buffer/region")
+      ;; TODO "cE" '(+eval:replace-region                    :which-key "Evaluate & replace region")
+      ;; TODO "cf" '(+format/region-or-buffer                :which-key "Format buffer/region")
+      ;; TODO "ci" '(+lookup/implementations                 :which-key "Find implementations")
+      ;; TODO "ck" '(+lookup/documentation                   :which-key "Jump to documentation")
+      ;; TODO "cs" '(+eval/send-region-to-repl               :which-key "Send to repl")
+      ;; TODO "ct" '(+lookup/type-definition                 :which-key "Find type definition")
+      "cw" '(delete-trailing-whitespace              :which-key "Delete trailing whitespace")
+      ;;"cW"   '(doom/delete-trailing-newlines           :which-key "Delete trailing newlines")
+      ;;"cx"   '(+default/diagnostics                    :which-key "List errors")
 
-    "w" '(:keymap evil-window-map :which-key "windows")))
-    
-(use-package evil
-  :ensure t
-  :init
-  (setq evil-want-integration t)
-  (setq evil-want-keybinding nil)
-  (setq evil-want-C-u-scroll t)
-  (setq evil-want-C-i-jump nil)
-  :config
-  (evil-mode 1)
-  (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
-  (define-key evil-insert-state-map (kbd "C-h") 'evil-delete-backward-char-and-join)
+      ;;; <leader> n --- notes
+      "n"   '(:ignore t              :which-key "notes")
+      "nr"  '(:ignore t              :which-key "roam")
+      "nrn" '(org-roam-capture       :which-key "Capture to node")
+      "nrf" '(org-roam-node-find     :which-key "Find node")
+      "nri" '(org-roam-node-insert   :which-key "Insert node")
+      "nrr" '(org-roam-buffer-toggle :which-key "Toggle roam buffer")
+      "nf"  '(my/open-roam-dir       :which-key "Find file in notes")
+      "ns"  '(my/org-roam-search     :which-key "Search notes")
 
-  ;; Use visual line motions even outside of visual-line-mode buffers
-  (evil-global-set-key 'motion "j" 'evil-next-visual-line)
-  (evil-global-set-key 'motion "k" 'evil-previous-visual-line)
+      ;;; <leader> p --- project
+      "p"  '(:ignore t                                  :which-key "project")
+      "p." '(+default/browse-project                    :which-key "Browse project")
+      "p>" '(doom/browse-in-other-project               :which-key "Browse other project")
+      "p!" '(projectile-run-shell-command-in-root       :which-key "Run cmd in project root")
+      "p&" '(projectile-run-async-shell-command-in-root :which-key "Async cmd in project root")
+      "pa" '(projectile-add-known-project               :which-key "Add new project")
+      "pb" '(projectile-switch-to-buffer                :which-key "Switch to project buffer")
+      "pc" '(projectile-compile-project                 :which-key "Compile in project")
+      "pC" '(projectile-repeat-last-command             :which-key "Repeat last command")
+      "pd" '(projectile-remove-known-project            :which-key "Remove known project")
+      "pD" '(+default/discover-projects                 :which-key "Discover projects in folder")
+      "pe" '(projectile-edit-dir-locals                 :which-key "Edit project .dir-locals")
+      "pf" '(projectile-find-file                       :which-key "Find file in project")
+      ;;"pF" '(doom/find-file-in-other-project            :which-key "Find file in other project")
+      "pg" '(projectile-configure-project               :which-key "Configure project")
+      "pi" '(projectile-invalidate-cache                :which-key "Invalidate project cache")
+      "pk" '(projectile-kill-buffers                    :which-key "Kill project buffers")
+      "po" '(find-sibling-file                          :which-key "Find sibling file")
+      "pp" '(projectile-persp-switch-project            :which-key "Switch project")
+      "pr" '(projectile-recentf                         :which-key "Find recent project files")
+      "pR" '(projectile-run-project                     :which-key "Run project")
+      "ps" '(projectile-save-project-buffers            :which-key "Save project files")
+      "pT" '(projectile-test-project                    :which-key "Test project")
+      ;;"px" '(doom/open-project-scratch-buffer           :which-key "Pop up scratch buffer")
+      ;;"pX" '(doom/switch-to-project-scratch-buffer)     :which-key "Switch to scratch buffer")
 
-  (evil-set-initial-state 'messages-buffer-mode 'normal)
-  (evil-set-initial-state 'dashboard-mode 'normal))
+      ;;; <leader> q --- quit/session
+      "p"  '(:ignore t                     :which-key "quit/session")
+      ;; TODO "pd" '(+default/restart-server       :which-key "Restart emacs server")
+      "pf" '(delete-frame                  :which-key "Delete frame")
+      ;; TODO "pF" '(doom/kill-all-buffers         :which-key "Clear current frame")
+      "pK" '(save-buffers-kill-emacs       :which-key "Kill Emacs (and daemon)")
+      "pq" '(save-buffers-kill-terminal    :which-key "Quit Emacs")
+      "pQ" '(evil-quit-all-with-error-code :which-key "Quit Emacs without saving")
+      ;; TODO "ps" '(doom/quicksave-session        :which-key "Quick save current session")
+      ;; TODO "pl" '(doom/quickload-session        :which-key "Restore last session")
+      ;; TODO "pS" '(doom/save-session             :which-key "Save session to file")
+      ;; TODO "pL" '(doom/load-session             :which-key "Restore session from file")
+      ;; TODO "pr" '(doom/restart-and-restore      :which-key "Restart & restore Emacs")
+      ;; TODO "pR" '(doom/restart)                 :which-key "Restart Emacs")
 
-(use-package evil-collection
-  :after evil
-  :config
-  (evil-collection-init))
+
+      "g"  '(:ignore t    :which-key "git")
+      "gg" '(magit-status :which-key "Magit status")
+
+
+      "o"  '(:ignore t    :which-key "open")
+      "ot" '(vterm-toggle :which-key "toggle vterm")
+      "oT" '(my/vterm-new :which-key "open vterm")
+      "o-" '(dired-jump   :which-key "Dired")
+
+
+      "w" '(:keymap evil-window-map :which-key "windows")))
+      
+  (use-package evil
+    :ensure t
+    :init
+    (setq evil-want-integration t)
+    (setq evil-want-keybinding nil)
+    (setq evil-want-C-u-scroll t)
+    (setq evil-want-C-i-jump nil)
+    :config
+    (evil-mode 1)
+    (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
+    (define-key evil-insert-state-map (kbd "C-h") 'evil-delete-backward-char-and-join)
+
+    ;; Use visual line motions even outside of visual-line-mode buffers
+    (evil-global-set-key 'motion "j" 'evil-next-visual-line)
+    (evil-global-set-key 'motion "k" 'evil-previous-visual-line)
+
+    (evil-set-initial-state 'messages-buffer-mode 'normal)
+    (evil-set-initial-state 'dashboard-mode 'normal))
+
+  (use-package evil-collection
+    :after evil
+    :config
+    (evil-collection-init))
 
 (setq ns-alternate-modifier 'meta) ; left Option = Meta
 (setq ns-right-alternate-modifier 'none) ; right Option = literal Alt (# on Opt-3)
@@ -364,6 +503,11 @@ With non-nil prefix INCLUDE-ROOT, also include the project's root."
 
 (my/leader-keys
   "ts" '(hydra-text-scale/body :which-key "scale text"))
+
+(use-package colorful-mode
+  :init
+  (colorful-mode))
+(use-package rainbow-mode)
 
 (defun my/org-font-setup ()
   ;; Replace list hyphen with dot
@@ -735,6 +879,7 @@ With non-nil prefix INCLUDE-ROOT, also include the project's root."
 (use-package lsp-ui
   :custom
   (lsp-ui-sideline-diagnostic-max-lines 5)
+  (lsp-ui-doc-delay 0.1)                         ;; show doc quickly
   :commands lsp-ui-mode)
 
 (use-package lsp-treemacs
@@ -872,6 +1017,8 @@ With non-nil prefix INCLUDE-ROOT, also include the project's root."
               (display-buffer-reuse-window display-buffer-at-bottom)
               (window-height . 0.3)))))
       (vterm-toggle))))
+
+(use-package rg)
 
 (use-package dired
   :ensure nil
