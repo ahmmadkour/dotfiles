@@ -88,6 +88,37 @@
                 eshell-mode-hook))
   (add-hook mode (lambda () (display-line-numbers-mode 0))))
 
+(defun my/show-trailing-whitespace ()
+  "Show trailing whitespace in code buffers."
+  (setq show-trailing-whitespace t))
+
+(add-hook 'prog-mode-hook #'my/show-trailing-whitespace)
+
+;; Global defaults
+(setq-default indent-tabs-mode nil)
+(setq-default tab-width 4)
+
+(defun my/indent-ts-2 ()
+  "Use 2-space indentation."
+  (setq-local tab-width 2)
+  (setq-local indent-tabs-mode nil))
+
+(defun my/indent-4-spaces ()
+  "Use 4-space indentation."
+  (setq-local tab-width 4)
+  (setq-local indent-tabs-mode nil))
+
+(defun my/indent-go-tabs ()
+  "Use tabs for Go (gofmt)."
+  (setq-local tab-width 4)
+  (setq-local indent-tabs-mode t))
+
+(add-hook 'typescript-ts-mode-hook #'my/indent-ts-2)
+(add-hook 'tsx-ts-mode-hook #'my/indent-ts-2)
+(add-hook 'python-ts-mode-hook #'my/indent-4-spaces)
+(add-hook 'rust-ts-mode-hook #'my/indent-4-spaces)
+(add-hook 'go-ts-mode-hook #'my/indent-go-tabs)
+
 (defvar my/default-font-size 140)
 (defvar my/default-variable-font-size 140)
 

@@ -152,6 +152,56 @@ This section configures basic UI settings that remove unneeded elements to make 
 
 #+end_src
 
+* Whitespace Hygiene
+
+Show trailing whitespace in programming buffers to make stray spaces visible without forcing auto-clean.
+
+#+begin_src emacs-lisp
+
+  (defun my/show-trailing-whitespace ()
+    "Show trailing whitespace in code buffers."
+    (setq show-trailing-whitespace t))
+
+  (add-hook 'prog-mode-hook #'my/show-trailing-whitespace)
+
+#+end_src
+
+* Consistent Indentation Defaults
+
+Set sensible defaults globally and override per language.
+
+#+begin_src emacs-lisp
+
+  ;; Global defaults
+  (setq-default indent-tabs-mode nil)
+  (setq-default tab-width 4)
+
+  (defun my/indent-ts-2 ()
+    "Use 2-space indentation."
+    (setq-local tab-width 2)
+    (setq-local indent-tabs-mode nil))
+
+  (defun my/indent-4-spaces ()
+    "Use 4-space indentation."
+    (setq-local tab-width 4)
+    (setq-local indent-tabs-mode nil))
+
+  (defun my/indent-go-tabs ()
+    "Use tabs for Go (gofmt)."
+    (setq-local tab-width 4)
+    (setq-local indent-tabs-mode t))
+
+  (add-hook 'typescript-ts-mode-hook #'my/indent-ts-2)
+  (add-hook 'tsx-ts-mode-hook #'my/indent-ts-2)
+  (add-hook 'python-ts-mode-hook #'my/indent-4-spaces)
+  (add-hook 'rust-ts-mode-hook #'my/indent-4-spaces)
+  (add-hook 'go-ts-mode-hook #'my/indent-go-tabs)
+
+#+end_src
+
+#+RESULTS:
+| my/indent-go-tabs | lsp-deferred | doom-modeline-env-setup-go |
+
 ** Font
 
 [[https://github.com/tonsky/FiraCode][Fira Code]] and [[https://fonts.google.com/specimen/Cantarell][Cantarell]] need to be installed.
