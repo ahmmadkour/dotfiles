@@ -119,6 +119,14 @@
 (add-hook 'rust-ts-mode-hook #'my/indent-4-spaces)
 (add-hook 'go-ts-mode-hook #'my/indent-go-tabs)
 
+(use-package recentf
+  :ensure nil
+  :init
+  (recentf-mode 1)
+  :custom
+  (recentf-max-saved-items 200)
+  (recentf-auto-cleanup 'never))
+
 (defvar my/default-font-size 140)
 (defvar my/default-variable-font-size 140)
 
@@ -211,7 +219,15 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
                  (user-error "There are no known projects"))
              default-directory)))
     (call-interactively
-     (cond ((and (featurep 'ivy) (fboundp 'swiper-helm-project))
+     (cond ((and (featurep 'ivy) (fboundp 'counsel-rg))
+            (let ((counsel-rg-base-command
+                   (if arg
+                       "rg -S --no-heading --line-number --color never --hidden --no-ignore --glob !.git %s ."
+                     "rg -S --no-heading --line-number --color never %s .")))
+              (lambda ()
+                (interactive)
+                (counsel-rg "" default-directory))))
+           ((and (featurep 'ivy) (fboundp 'swiper-helm-project))
             #'swiper-helm-project) ; Standard Ivy/Swiper search (often combined)
            ((and (featurep 'helm) (fboundp 'helm-project-do-ag))
             #'helm-project-do-ag) ; Standard Helm search (using Ag or similar)
@@ -1056,12 +1072,16 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
   :config
   (projectile-mode)
   (projectile-load-known-projects)
+  (projectile-discover-projects-in-search-path)
   ;;:custom ((projectile-completion-system 'ivy))
   :bind-keymap
   ("C-c p" . projectile-command-map)
   :init
   (when (file-directory-p "~/Workspace/code")
     (setq projectile-project-search-path '("~/Workspace/code")))
+  (setq projectile-indexing-method 'alien)
+  (setq projectile-enable-caching t)
+  (setq projectile-sort-order 'recentf)
   (setq projectile-switch-project-action #'projectile-find-file))
 
 (use-package persp-projectile
