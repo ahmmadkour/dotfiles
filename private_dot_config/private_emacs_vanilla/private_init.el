@@ -499,28 +499,29 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
          ("C-k" . ivy-previous-line)
          ("C-d" . ivy-reverse-i-search-kill))
   :config
-  (ivy-mode 1))
+  (ivy-mode 1)
+  (setq ivy-use-selectable-prompt t))
 
-(use-package all-the-icons-ivy-rich
-  :ensure t
-  :init (all-the-icons-ivy-rich-mode 1))
+  (use-package all-the-icons-ivy-rich
+    :ensure t
+    :init (all-the-icons-ivy-rich-mode 1))
+  
+  ;; Use information on M-x commands
+  (use-package ivy-rich
+    :after ivy
+    :init
+    (ivy-rich-mode 1))
 
-;; Use information on M-x commands
-(use-package ivy-rich
-  :after ivy
-  :init
-  (ivy-rich-mode 1))
-
-;; Providing versions of common Emacs commands that are customized to make the best use of Ivy.
-(use-package counsel
-  :demand t
-  :bind (("C-M-j" . 'counsel-switch-buffer)
-         :map minibuffer-local-map
-         ("C-r" . 'counsel-minibuffer-history))
-  :custom
-  (counsel-linux-app-format-function #'counsel-linux-app-format-function-name-only)
-  :config
-  (counsel-mode 1))
+  ;; Providing versions of common Emacs commands that are customized to make the best use of Ivy.
+  (use-package counsel
+    :demand t
+    :bind (("C-M-j" . 'counsel-switch-buffer)
+           :map minibuffer-local-map
+           ("C-r" . 'counsel-minibuffer-history))
+    :custom
+    (counsel-linux-app-format-function #'counsel-linux-app-format-function-name-only)
+    :config
+    (counsel-mode 1))
 
 (use-package ivy-prescient
   :after counsel
@@ -761,7 +762,8 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
   :init
   (setq org-roam-v2-ack t)
   (setq org-roam-node-display-template
-        (concat "${title:*} " (propertize "${tags}" 'face 'org-tag)))
+        (concat "${title:*} "
+            (propertize "${tags:50}" 'face 'org-tag)))
   :custom
   (org-roam-directory "~/Workspace/org/roam")
   (org-roam-completion-everywhere t)
