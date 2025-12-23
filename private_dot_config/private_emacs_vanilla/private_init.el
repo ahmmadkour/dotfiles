@@ -1166,7 +1166,9 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
       (evil-define-key 'normal dired-mode-map (kbd "SPC") nil))) ;; clear SPC keybinding in dired so my/leader-keys works
 
 (use-package nerd-icons-dired
-  :hook (dired-mode . nerd-icons-dired-mode))
+  :hook (dired-mode . nerd-icons-dired-mode)
+  :config
+  (set-face-attribute 'dired-directory nil :foreground "#89B4FA" :weight 'bold))
 
   ;;(use-package dired-open
   ;;  :after dired
