@@ -127,13 +127,13 @@
   (recentf-max-saved-items 200)
   (recentf-auto-cleanup 'never))
 
-(defvar my/default-font-size 140)
-(defvar my/default-variable-font-size 140)
+(defvar my/default-font-size 160)
+(defvar my/default-variable-font-size 160)
 
-(set-face-attribute 'default nil :font "Fira Code Retina" :height my/default-font-size)
+(set-face-attribute 'default nil :font "Iosevka Nerd Font" :height my/default-font-size)
 
 ;; Set the fixed pitch face
-(set-face-attribute 'fixed-pitch nil :font "Fira Code Retina" :height my/default-font-size)
+(set-face-attribute 'fixed-pitch nil :font "Iosevka Nerd Font" :height my/default-font-size)
 
 ;; Set the variable pitch face
 (set-face-attribute 'variable-pitch nil :font "Cantarell" :height my/default-variable-font-size :weight 'regular)
@@ -470,7 +470,13 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
   ;; Corrects (and improve) org-mode's native fontification.
   (doom-themes-org-config))
 
-(use-package all-the-icons) 
+(use-package nerd-icons
+  :if (display-graphic-p)
+  :custom
+  ;; The Nerd Font you want to use in GUI
+  ;; "Symbols Nerd Font Mono" is the default and is recommended
+  ;; but you can use any other Nerd Font if you want
+  (nerd-icons-font-family "Symbols Nerd Font Mono"))
 
 (use-package doom-modeline
   :init (doom-modeline-mode 1)
@@ -502,9 +508,9 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
   (ivy-mode 1)
   (setq ivy-use-selectable-prompt t))
 
-  (use-package all-the-icons-ivy-rich
-    :ensure t
-    :init (all-the-icons-ivy-rich-mode 1))
+  (use-package nerd-icons-ivy-rich
+    :after ivy-rich
+    :init (nerd-icons-ivy-rich-mode 1))
   
   ;; Use information on M-x commands
   (use-package ivy-rich
@@ -1146,35 +1152,35 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
 (use-package rg)
 
 (use-package dired
-  :ensure nil
-  :init
-  (setq dired-kill-when-opening-new-dired-buffer t)
-  :commands (dired dired-jump)
-  :bind (("C-x C-j" . dired-jump))
-  :custom ((dired-listing-switches "-agho --group-directories-first"))
-  :config
-  (evil-collection-define-key 'normal 'dired-mode-map
-    "h" 'dired-up-directory
-    "l" 'dired-find-file)
-  (with-eval-after-load 'dired
-    (evil-define-key 'normal dired-mode-map (kbd "SPC") nil))) ;; clear SPC keybinding in dired so my/leader-keys works
+    :ensure nil
+    :init
+    (setq dired-kill-when-opening-new-dired-buffer t)
+    :commands (dired dired-jump)
+    :bind (("C-x C-j" . dired-jump))
+    :custom ((dired-listing-switches "-agho --group-directories-first"))
+    :config
+    (evil-collection-define-key 'normal 'dired-mode-map
+      "h" 'dired-up-directory
+      "l" 'dired-find-file)
+    (with-eval-after-load 'dired
+      (evil-define-key 'normal dired-mode-map (kbd "SPC") nil))) ;; clear SPC keybinding in dired so my/leader-keys works
 
-(use-package all-the-icons-dired
-  :hook (dired-mode . all-the-icons-dired-mode))
+(use-package nerd-icons-dired
+  :hook (dired-mode . nerd-icons-dired-mode))
 
-;;(use-package dired-open
-;;  :after dired
-;;  :config
-;;  ;; Doesn't work as expected!
-;;  ;;(add-to-list 'dired-open-functions #'dired-open-xdg t)
-;;  (setq dired-open-extensions '(("png" . "feh")
-;;                                ("mkv" . "mpv"))))
+  ;;(use-package dired-open
+  ;;  :after dired
+  ;;  :config
+  ;;  ;; Doesn't work as expected!
+  ;;  ;;(add-to-list 'dired-open-functions #'dired-open-xdg t)
+  ;;  (setq dired-open-extensions '(("png" . "feh")
+  ;;                                ("mkv" . "mpv"))))
 
-(use-package dired-hide-dotfiles
-  :hook (dired-mode . dired-hide-dotfiles-mode)
-  :config
-  (evil-collection-define-key 'normal 'dired-mode-map
-    "H" 'dired-hide-dotfiles-mode))
+  (use-package dired-hide-dotfiles
+    :hook (dired-mode . dired-hide-dotfiles-mode)
+    :config
+    (evil-collection-define-key 'normal 'dired-mode-map
+      "H" 'dired-hide-dotfiles-mode))
 
 ;; Make gc pauses faster by decreasing the threshold.
 (setq gc-cons-threshold (* 20 1000 1000))
