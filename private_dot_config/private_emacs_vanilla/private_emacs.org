@@ -9,8 +9,8 @@ Start emacs with =emacs -q -l .config/emacs_vanilla/init.el=
 
 ** On the first run
 
-- =M-x all-the-icons-install-fonts= 
-- Install [[https://github.com/tonsky/FiraCode][Fira Code]] and [[https://fonts.google.com/specimen/Cantarell][Cantarell]] if they are not already installed
+- =M-x nerd-icons-install-fonts=
+- [[Iosevka]] and [[https://fonts.google.com/specimen/Cantarell][Cantarell]] fonts need to be installed.
 
 * Tips for Use
 
@@ -215,7 +215,9 @@ Set sensible defaults globally and override per language.
 
 ** Font
 
-[[https://github.com/tonsky/FiraCode][Fira Code]] and [[https://fonts.google.com/specimen/Cantarell][Cantarell]] need to be installed.
+[[https://www.nerdfonts.com/font-downloads][Iosevka]] and [[https://fonts.google.com/specimen/Cantarell][Cantarell]] need to be installed.
+
+=variable-pitch= is used for proportional text (mostly Org buffers and any mode that enables =variable-pitch-mode=). It’s currently set to =Cantarell= for readability in prose.
 
 *** Key bindings
 
@@ -224,13 +226,13 @@ Set sensible defaults globally and override per language.
 
 #+begin_src emacs-lisp
 
-  (defvar my/default-font-size 140)
-  (defvar my/default-variable-font-size 140)
+  (defvar my/default-font-size 160)
+  (defvar my/default-variable-font-size 160)
 
-  (set-face-attribute 'default nil :font "Fira Code Retina" :height my/default-font-size)
+  (set-face-attribute 'default nil :font "Iosevka Nerd Font" :height my/default-font-size)
 
   ;; Set the fixed pitch face
-  (set-face-attribute 'fixed-pitch nil :font "Fira Code Retina" :height my/default-font-size)
+  (set-face-attribute 'fixed-pitch nil :font "Iosevka Nerd Font" :height my/default-font-size)
 
   ;; Set the variable pitch face
   (set-face-attribute 'variable-pitch nil :font "Cantarell" :height my/default-variable-font-size :weight 'regular)
@@ -604,17 +606,32 @@ Use =M-x counsel-load-theme= to choose between them.
 
 #+end_src
 
+** Icons
+
+Other alternatives is =all-the-icons=
+
+*NOTE:* The first time you load your configuration on a new machine, run =M-x nerd-icons-install-fonts= so icons display correctly.
+
+#+begin_src emacs-lisp
+
+(use-package nerd-icons
+  :if (display-graphic-p)
+  :custom
+  ;; The Nerd Font you want to use in GUI
+  ;; "Symbols Nerd Font Mono" is the default and is recommended
+  ;; but you can use any other Nerd Font if you want
+  (nerd-icons-font-family "Symbols Nerd Font Mono"))
+  
+#+end_src
+
 ** Better Modeline
 
 [[https://github.com/seagle0128/doom-modeline][doom-modeline]] is  mode line configuration for Emacs.  The default configuration is quite good
 
 Check out [[https://github.com/seagle0128/doom-modeline#customize][configuration options]].
 
-*NOTE:* The first time you load your configuration on a new machine, you'll need to run =M-x all-the-icons-install-fonts= so that mode line icons display correctly.
 
 #+begin_src emacs-lisp
-
-  (use-package all-the-icons) 
 
   (use-package doom-modeline
     :init (doom-modeline-mode 1)
@@ -669,9 +686,9 @@ Helm is an alternative.
     (ivy-mode 1)
     (setq ivy-use-selectable-prompt t))
 
-    (use-package all-the-icons-ivy-rich
-      :ensure t
-      :init (all-the-icons-ivy-rich-mode 1))
+    (use-package nerd-icons-ivy-rich
+      :after ivy-rich
+      :init (nerd-icons-ivy-rich-mode 1))
     
     ;; Use information on M-x commands
     (use-package ivy-rich
@@ -1754,8 +1771,8 @@ Dired is a built-in file manager for Emacs that does some pretty amazing things!
     (with-eval-after-load 'dired
       (evil-define-key 'normal dired-mode-map (kbd "SPC") nil))) ;; clear SPC keybinding in dired so my/leader-keys works
 
-  (use-package all-the-icons-dired
-    :hook (dired-mode . all-the-icons-dired-mode))
+(use-package nerd-icons-dired
+  :hook (dired-mode . nerd-icons-dired-mode))
 
   ;;(use-package dired-open
   ;;  :after dired
