@@ -88,6 +88,12 @@
                 eshell-mode-hook))
   (add-hook mode (lambda () (display-line-numbers-mode 0))))
 
+;; Scroll settings
+(setq scroll-step 1)                          ; 1 single‑line increments.
+(setq scroll-conservatively 101)              ; 101 tells Emacs "don’t recenter, just scroll."
+(setq scroll-margin 10)                       ; how many lines to keep above/below point before scrolling.
+(setq scroll-preserve-screen-position t)      ; keeps point at the same screen position when possible (smoother feel)
+
 (defun my/show-trailing-whitespace ()
   "Show trailing whitespace in code buffers."
   (setq show-trailing-whitespace t))

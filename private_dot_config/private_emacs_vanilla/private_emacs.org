@@ -122,12 +122,12 @@ This section configures basic UI settings that remove unneeded elements to make 
 #+begin_src emacs-lisp
 
   (setq inhibit-startup-message t)
-  
+
   (scroll-bar-mode -1)        ; Disable visible scrollbar
   (tool-bar-mode -1)          ; Disable the toolbar
   (tooltip-mode -1)           ; Disable tooltips
   (set-fringe-mode 10)        ; Give some breathing room
-  
+
   (menu-bar-mode -1)            ; Disable the menu bar
 
   ;; Set up the visible bell
@@ -141,7 +141,7 @@ This section configures basic UI settings that remove unneeded elements to make 
 
   (column-number-mode)
   (global-display-line-numbers-mode t)
-  
+
   ;; Disable line numbers for some modes
   (dolist (mode '(org-mode-hook
                   term-mode-hook
@@ -149,6 +149,12 @@ This section configures basic UI settings that remove unneeded elements to make 
                   vterm-mode-hook
                   eshell-mode-hook))
     (add-hook mode (lambda () (display-line-numbers-mode 0))))
+
+  ;; Scroll settings
+  (setq scroll-step 1)                          ; 1 single‑line increments.
+  (setq scroll-conservatively 101)              ; 101 tells Emacs "don’t recenter, just scroll."
+  (setq scroll-margin 10)                       ; how many lines to keep above/below point before scrolling.
+  (setq scroll-preserve-screen-position t)      ; keeps point at the same screen position when possible (smoother feel)
 
 #+end_src
 
@@ -1445,6 +1451,12 @@ You can use the pyvenv package to use =virtualenv= environments in Emacs.  The =
 
 #+end_src
 
+#+begin_src emacs-lisp
+
+  (use-package uv-mode
+    :hook (python-mode . uv-mode-auto-activate-hook))
+
+#+end_src>
 *** Go
 
 #+begin_src shell
@@ -1686,11 +1698,13 @@ Make sure that you have the [[https://github.com/akermu/emacs-libvterm/#requirem
 
 * File Management
 ** rg
+
 #+begin_src emacs-lisp
 
   (use-package rg)
 
 #+end_src
+
 ** Dired
 
 Dired is a built-in file manager for Emacs that does some pretty amazing things!  Here are some key bindings you should try out:
