@@ -1308,6 +1308,15 @@ References:
     (lsp-idle-delay 0.2)
     (lsp-eldoc-enable-hover nil)
     (lsp-signature-auto-activate nil)
+    ;; Performance tuning
+    (lsp-log-io nil)                          ; disable IO logging for better performance
+    (lsp-enable-file-watchers nil)            ; disable file watchers (can be slow on large projects)
+    (lsp-file-watch-threshold 1500)           ; or increase threshold if you enable watchers
+    (lsp-enable-folding nil)                  ; disable if you don't use code folding
+    (lsp-enable-on-type-formatting nil)       ; disable on-type formatting (can be slow)
+    (lsp-semantic-tokens-enable nil)          ; disable if tree-sitter handles highlighting
+    (lsp-lens-enable nil)                     ; disable code lens (can be slow)
+    (lsp-keep-workspace-alive nil)            ; don't keep dead workspaces in memory
     :hook (;; replace XXX-mode with concrete major-mode(e. g. python-mode)
            ;;(XXX-mode . lsp-deferred)
            ((tsx-ts-mode
@@ -1333,6 +1342,15 @@ References:
                  (lsp-feature? "textDocument/inlayHint"))
         (lsp-inlay-hints-mode 1)))
     (add-hook 'lsp-after-initialize-hook #'my/lsp-enable-inlay-hints)
+    ;; Ignore common large directories if file watchers are enabled.
+    ;; If files change in these dirs (e.g. npm install), run M-x lsp-workspace-restart
+    (dolist (dir '("[/\\\\]\\.venv\\'"
+                   "[/\\\\]node_modules\\'"
+                   "[/\\\\]__pycache__\\'"
+                   "[/\\\\]\\.cache\\'"
+                   "[/\\\\]dist\\'"
+                   "[/\\\\]build\\'"))
+      (add-to-list 'lsp-file-watch-ignored-directories dir))
     :commands lsp lsp-deferred)
 
   (with-eval-after-load 'lsp-mode
