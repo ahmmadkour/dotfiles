@@ -337,6 +337,8 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
       "c"  '(:ignore t                                 :which-key "code")
       ;;(:when (modulep! :tools lsp -eglot)
       "ca" '(lsp-execute-code-action                   :which-key "LSP Execute code action")
+      "cd" '(lsp-ui-peek-find-definitions              :which-key "Peek definition")
+      "cD" '(lsp-ui-peek-find-references               :which-key "Peek references")
       "co" '(lsp-organize-imports                      :which-key "LSP Organize imports")
       ;; OTOD "cl" '(+default/lsp-command-map                  :which-key "LSP")
       "cr" '(lsp-rename                                :which-key "LSP Rename")
@@ -363,8 +365,6 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
       ;;"cj" '(consult-eglot-symbols :which-key "Jump to symbol in current workspace")
       "cc" '(compile                                 :which-key "Compile")
       "cC" '(recompile                               :which-key "Recompile")
-      ;; TODO "cd" '(+lookup/definition                      :which-key "Jump to definition")
-      ;; TODO "cD" '(+lookup/references                      :which-key "Jump to references")
       ;; TODO "ce" '(+eval/buffer-or-region                  :which-key "Evaluate buffer/region")
       ;; TODO "cE" '(+eval:replace-region                    :which-key "Evaluate & replace region")
       ;; TODO "cf" '(+format/region-or-buffer                :which-key "Format buffer/region")
@@ -1016,14 +1016,17 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
   :hook (lsp-mode . lsp-ui-mode)
   :custom
   (lsp-ui-doc-enable t)
-  (lsp-ui-doc-delay 0.3)                         ;; show doc quickly
+  (lsp-ui-doc-delay 0.1)                         ; show doc quickly
   (lsp-ui-doc-position 'at-point)
-  (lsp-ui-doc-show-with-cursor t)
-  (lsp-ui-doc-show-with-mouse t)
+  (lsp-ui-doc-show-with-cursor nil)              ; don't show on cursor movement
+  (lsp-ui-doc-show-with-mouse t)                 ; only show on mouse hover
   (lsp-ui-sideline-show-hover nil)
   (lsp-ui-sideline-show-code-actions t)
   (lsp-ui-sideline-ignore-duplicate t)
   (lsp-ui-sideline-diagnostic-max-lines 5)
+  ;; Peek - inline preview for definitions/references
+  (lsp-ui-peek-enable t)                         ; enable peek feature
+  (lsp-ui-peek-show-directory t)                 ; show file path in peek
   :commands lsp-ui-mode)
 
 (use-package lsp-treemacs
