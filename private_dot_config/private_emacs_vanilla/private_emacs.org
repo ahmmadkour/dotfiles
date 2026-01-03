@@ -1549,27 +1549,49 @@ Install YAML Lsp server with:
 (editorconfig-mode 1)
 #+end_src
 
-** Company Mode
+** Corfu (Completion UI)
 
-[[http://company-mode.github.io/][Company Mode]] provides a nicer in-buffer completion interface than =completion-at-point=.  =TAB= now completes the selection and initiates completion at the current location if needed.
-
-[[https://github.com/sebastiencs/company-box][company-box]] is to further enhance the look of the completions with icons and better overall presentation.
+[[https://github.com/minad/corfu][Corfu]] is a lightweight completion UI that uses Emacs' native =completion-at-point= (capf). It's faster and simpler than Company, and integrates well with LSP via the =:capf= completion provider.
 
 #+begin_src emacs-lisp
 
-  (use-package company
-    :after lsp-mode
-    :hook (lsp-mode . company-mode)
-    :bind (:map company-active-map
-           ("<tab>" . company-complete-selection))
-          (:map lsp-mode-map
-           ("<tab>" . company-indent-or-complete-common))
+  (use-package corfu
     :custom
-    (company-minimum-prefix-length 1)
-    (company-idle-delay 0.1))
+    (corfu-auto t)                                 ; enable auto completion
+    (corfu-auto-delay 0.1)                         ; delay before popup shows
+    (corfu-auto-prefix 1)                          ; minimum prefix length for auto completion
+    (corfu-cycle t)                                ; enable cycling through candidates
+    (corfu-preselect 'prompt)                      ; don't auto-select first candidate
+    (corfu-scroll-margin 5)                        ; margin when scrolling
+    :bind (:map corfu-map
+           ("TAB" . corfu-next)
+           ([tab] . corfu-next)
+           ("S-TAB" . corfu-previous)
+           ([backtab] . corfu-previous)
+           ("RET" . corfu-complete))
+    :init
+    (global-corfu-mode))
 
-  (use-package company-box
-    :hook (company-mode . company-box-mode))
+  ;; Show documentation for selected candidate
+  (use-package corfu-popupinfo
+    :ensure nil                                    ; built into corfu
+    :after corfu
+    :custom
+    (corfu-popupinfo-delay '(0.5 . 0.2))           ; delay (initial . after-change)
+    :bind (:map corfu-map
+           ("M-d" . corfu-popupinfo-toggle)        ; toggle doc popup
+           ("M-p" . corfu-popupinfo-scroll-down)   ; scroll doc up (content moves down)
+           ("M-n" . corfu-popupinfo-scroll-up))    ; scroll doc down (content moves up)
+    :init
+    (corfu-popupinfo-mode))
+
+  ;; Add icons to completion candidates
+  (use-package kind-icon
+    :after corfu
+    :custom
+    (kind-icon-default-face 'corfu-default)        ; use corfu face for icons
+    :config
+    (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
 
 #+end_src
 
