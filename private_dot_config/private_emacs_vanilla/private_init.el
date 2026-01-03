@@ -1,5 +1,6 @@
-;; The default is 800 kilobytes.  Measured in bytes.
-(setq gc-cons-threshold (* 50 1000 1000))
+;; Set high GC threshold during startup for faster loading
+;; This effectively stop GC
+(setq gc-cons-threshold most-positive-fixnum)
 
 (defun my/display-startup-time ()
   (message "Emacs loaded in %s with %d garbage collections."
@@ -39,6 +40,17 @@
 (require 'help)
 
 (use-package ripgrep :defer t)
+
+(use-package gcmh
+  :ensure t
+  :diminish gcmh-mode
+  :init
+  (gcmh-mode 1)
+  :custom
+  (gcmh-idle-delay 5)                       ; seconds of idle before GC runs
+  (gcmh-high-cons-threshold (* 100 1024 1024)) ; 100MB threshold during normal use
+  (gcmh-low-cons-threshold (* 10 1024 1024))   ; 10MB threshold during idle GC
+  (gcmh-verbose nil))                       ; set to t for GC messages in *Messages*
 
 ;;(use-package auto-package-update
 ;;  :custom
@@ -986,11 +998,11 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
   :hook (lsp-mode . lsp-ui-mode)
   :custom
   (lsp-ui-doc-enable t)
-  (lsp-ui-doc-delay 0.1)                         ;; show doc quickly
+  (lsp-ui-doc-delay 0.3)                         ;; show doc quickly
   (lsp-ui-doc-position 'at-point)
   (lsp-ui-doc-show-with-cursor t)
   (lsp-ui-doc-show-with-mouse t)
-  (lsp-ui-sideline-show-hover t)
+  (lsp-ui-sideline-show-hover nil)
   (lsp-ui-sideline-show-code-actions t)
   (lsp-ui-sideline-ignore-duplicate t)
   (lsp-ui-sideline-diagnostic-max-lines 5)
@@ -1189,6 +1201,3 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
     :config
     (evil-collection-define-key 'normal 'dired-mode-map
       "H" 'dired-hide-dotfiles-mode))
-
-;; Make gc pauses faster by decreasing the threshold.
-(setq gc-cons-threshold (* 20 1000 1000))
