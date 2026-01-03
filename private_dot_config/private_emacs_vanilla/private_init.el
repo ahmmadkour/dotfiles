@@ -867,11 +867,11 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
 (use-package treesit
     :ensure nil
     :mode (("\\.tsx\\'" . tsx-ts-mode)
-           ("\\.js\\'"  . typescript-ts-mode)
-           ("\\.mjs\\'" . typescript-ts-mode)
-           ("\\.mts\\'" . typescript-ts-mode)
-           ("\\.cjs\\'" . typescript-ts-mode)
            ("\\.ts\\'"  . typescript-ts-mode)
+           ("\\.mts\\'" . typescript-ts-mode)
+           ("\\.js\\'"  . js-ts-mode)           ; plain JS files
+           ("\\.mjs\\'" . js-ts-mode)
+           ("\\.cjs\\'" . js-ts-mode)
            ("\\.jsx\\'" . tsx-ts-mode)
            ("\\.rs\\'" . rust-ts-mode)
            ("\\.json\\'" .  json-ts-mode)
@@ -1041,11 +1041,12 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
 
 (use-package lsp-pyright
   :ensure t
-  :hook (python-ts-mode . (lambda ()
-                            (require 'lsp-pyright)
-                            (lsp-deferred)))  ; or lsp
+  :init
+  ;; Load lsp-pyright before lsp-mode starts for python
+  (with-eval-after-load 'lsp-mode
+    (require 'lsp-pyright))
   :custom
-  (lsp-pyright-langserver-command "pyright") ;; or basedpyright
+  (lsp-pyright-langserver-command "pyright") ; or basedpyright
   (lsp-pyright-python-executable-cmd "python3")
   ;; Optional trims:
   ;; (lsp-pyright-use-library-code-for-types t)
@@ -1053,9 +1054,7 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
   )
 
 (use-package pyvenv
-  :after python-mode
-  :config
-  (pyvenv-mode 1))
+  :hook (python-ts-mode . pyvenv-mode))
 
 (setq lsp-go-analyses '((shadow . t)
                       (simplifycompositelit . :json-false)))
@@ -1073,7 +1072,9 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
   :custom
   (rustic-cargo-use-last-stored-arguments t))
 
-(setq rustic-analyzer-command '("~/.cargo/bin/rust-analyzer"))
+;; Use executable-find for portability across systems
+(when-let ((ra (executable-find "rust-analyzer")))
+  (setq rustic-analyzer-command (list ra)))
 
 (editorconfig-mode 1)
 
