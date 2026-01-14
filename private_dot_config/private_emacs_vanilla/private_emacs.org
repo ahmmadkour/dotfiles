@@ -551,14 +551,17 @@ One note about =general= package, as autoloads fire on functions, and not on var
         ;; TODO "qr" '(doom/restart-and-restore      :which-key "Restart & restore Emacs")
         ;; TODO "qR" '(doom/restart)                 :which-key "Restart Emacs")
 
+        ;; vterm
+        "v"  '(:ignore t                        :which-key "vterm")
+        "v]" '(multi-vterm-next                 :which-key "next terminal")
+        "v[" '(multi-vterm-prev                 :which-key "prev terminal")
+
         "g"  '(:ignore t    :which-key "git")
         "gg" '(magit-status :which-key "Magit status")
 
         "o"  '(:ignore t                        :which-key "open")
         "ot" '(multi-vterm-dedicated-toggle     :which-key "toggle terminal")
         "oT" '(multi-vterm                      :which-key "new terminal")
-        "on" '(multi-vterm-next                 :which-key "next terminal")
-        "oN" '(multi-vterm-prev                 :which-key "prev terminal")
         "o-" '(dired-jump                       :which-key "Dired")
 
         "w" '(:keymap evil-window-map :which-key "windows")))
@@ -1747,7 +1750,13 @@ Make sure that you have the [[https://github.com/akermu/emacs-libvterm/#requirem
   (use-package multi-vterm
     :after vterm
     :config
-    (setq multi-vterm-dedicated-window-height-percent 30))
+    (setq multi-vterm-dedicated-window-height-percent 30)
+
+    ;; Start vterm in insert state
+    (add-hook 'vterm-mode-hook
+              (lambda ()
+                (setq-local evil-insert-state-cursor 'box)
+                (evil-insert-state))))
 
 #+end_src
 
