@@ -410,6 +410,7 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
       "pR" '(projectile-run-project                     :which-key "Run project")
       "ps" '(projectile-save-project-buffers            :which-key "Save project files")
       "pT" '(projectile-test-project                    :which-key "Test project")
+      "pt" '(multi-vterm-project                        :which-key "project terminal")
       ;;"px" '(doom/open-project-scratch-buffer           :which-key "Pop up scratch buffer")
       ;;"pX" '(doom/switch-to-project-scratch-buffer)     :which-key "Switch to scratch buffer")
 
@@ -428,16 +429,15 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
       ;; TODO "qr" '(doom/restart-and-restore      :which-key "Restart & restore Emacs")
       ;; TODO "qR" '(doom/restart)                 :which-key "Restart Emacs")
 
-
       "g"  '(:ignore t    :which-key "git")
       "gg" '(magit-status :which-key "Magit status")
 
-
-      "o"  '(:ignore t    :which-key "open")
-      "ot" '(vterm-toggle :which-key "toggle vterm")
-      "oT" '(my/vterm-new :which-key "open vterm")
-      "o-" '(dired-jump   :which-key "Dired")
-
+      "o"  '(:ignore t                        :which-key "open")
+      "ot" '(multi-vterm-dedicated-toggle     :which-key "toggle terminal")
+      "oT" '(multi-vterm                      :which-key "new terminal")
+      "on" '(multi-vterm-next                 :which-key "next terminal")
+      "oN" '(multi-vterm-prev                 :which-key "prev terminal")
+      "o-" '(dired-jump                       :which-key "Dired")
 
       "w" '(:keymap evil-window-map :which-key "windows")))
       
@@ -1198,20 +1198,10 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
   ;;(with-eval-after-load 'vterm
   ;;  (evil-set-initial-state 'vterm-mode 'emacs)))
 
-(use-package vterm-toggle
+(use-package multi-vterm
   :after vterm
   :config
-  (setq vterm-toggle-fullscreen-p nil)
-
-  ;; Custom function that ensures bottom display
-  (defun my/vterm-toggle-bottom ()
-    "Toggle vterm at bottom of screen."
-    (interactive)
-    (let ((display-buffer-alist
-           '((".*"
-              (display-buffer-reuse-window display-buffer-at-bottom)
-              (window-height . 0.3)))))
-      (vterm-toggle))))
+  (setq multi-vterm-dedicated-window-height-percent 30))
 
 (use-package rg)
 
