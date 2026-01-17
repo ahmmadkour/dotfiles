@@ -1,4 +1,4 @@
-#ntitle: Emacs Configuration
+#title: Emacs Configuration
 #+property: header-args:emacs-lisp :tangle /Users/ahmed/.config/emacs_vanilla/init.el :mkdirp yes
 
 * Intro
@@ -1158,7 +1158,42 @@ Doom-style local leader keybindings for org-mode using =SPC m= prefix.
       "m p"   '(:ignore t                      :which-key "priority")
       "m p d" '(org-priority-down              :which-key "Priority down")
       "m p p" '(org-priority                   :which-key "Priority")
-      "m p u" '(org-priority-up                :which-key "Priority up")))
+      "m p u" '(org-priority-up                :which-key "Priority up")
+
+      ;; Org-roam (m m)
+      "m m"     '(:ignore t                    :which-key "org-roam")
+      "m m D"   '(org-roam-demote-entire-buffer :which-key "Demote buffer")
+      "m m f"   '(org-roam-node-find           :which-key "Find node")
+      "m m F"   '(org-roam-ref-find            :which-key "Find ref")
+      "m m g"   '(org-roam-graph               :which-key "Graph")
+      "m m i"   '(org-roam-node-insert         :which-key "Insert node")
+      "m m I"   '(org-id-get-create            :which-key "Create ID")
+      "m m m"   '(org-roam-buffer-toggle       :which-key "Toggle buffer")
+      "m m M"   '(org-roam-buffer-display-dedicated :which-key "Dedicated buffer")
+      "m m n"   '(org-roam-capture             :which-key "Capture")
+      "m m r"   '(org-roam-refile              :which-key "Refile")
+      "m m R"   '(org-roam-link-replace-all    :which-key "Replace all links")
+      ;; Dailies (m m d)
+      "m m d"   '(:ignore t                    :which-key "dailies")
+      "m m d b" '(org-roam-dailies-goto-previous-note :which-key "Previous note")
+      "m m d d" '(org-roam-dailies-goto-date   :which-key "Goto date")
+      "m m d D" '(org-roam-dailies-capture-date :which-key "Capture date")
+      "m m d f" '(org-roam-dailies-goto-next-note :which-key "Next note")
+      "m m d m" '(org-roam-dailies-goto-tomorrow :which-key "Goto tomorrow")
+      "m m d M" '(org-roam-dailies-capture-tomorrow :which-key "Capture tomorrow")
+      "m m d n" '(org-roam-dailies-capture-today :which-key "Capture today")
+      "m m d t" '(org-roam-dailies-goto-today  :which-key "Goto today")
+      "m m d y" '(org-roam-dailies-goto-yesterday :which-key "Goto yesterday")
+      "m m d Y" '(org-roam-dailies-capture-yesterday :which-key "Capture yesterday")
+      "m m d -" '(org-roam-dailies-find-directory :which-key "Find directory")
+      ;; Node properties (m m o)
+      "m m o"   '(:ignore t                    :which-key "node properties")
+      "m m o a" '(org-roam-alias-add           :which-key "Add alias")
+      "m m o A" '(org-roam-alias-remove        :which-key "Remove alias")
+      "m m o t" '(org-roam-tag-add             :which-key "Add tag")
+      "m m o T" '(org-roam-tag-remove          :which-key "Remove tag")
+      "m m o r" '(org-roam-ref-add             :which-key "Add ref")
+      "m m o R" '(org-roam-ref-remove          :which-key "Remove ref")))
 
 #+end_src
 
