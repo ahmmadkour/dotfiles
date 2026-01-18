@@ -1084,6 +1084,7 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
     "TAB d" '(persp-kill :which-key "persp-kill"))
   :init
   (setq persp-mode-prefix-key (kbd "C-c M-p"))
+  (setq persp-modestring-short t)  ; Only show current perspective, not all
   (persp-mode))
 
 (use-package treesit
