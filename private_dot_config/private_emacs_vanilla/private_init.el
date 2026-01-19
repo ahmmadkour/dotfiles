@@ -1065,8 +1065,10 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
   :ensure t  ; use `:straight t` if using straight.el!
   :general
   ("C-c P C" 'persp-kill-buffer*
-   "s-{"     'persp-prev
-   "s-}"     'persp-next
+   "s-{"     'previous-buffer        ; Cmd-Shift-[ cycles buffers within perspective
+   "s-}"     'next-buffer            ; Cmd-Shift-] cycles buffers within perspective
+   "C-s-["   'persp-prev             ; Cmd-Ctrl-[ switches perspectives
+   "C-s-]"   'persp-next             ; Cmd-Ctrl-] switches perspectives
    "s-1"     'my/persp-switch-to-1
    "s-2"     'my/persp-switch-to-2
    "s-3"     'my/persp-switch-to-3
