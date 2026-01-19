@@ -1276,7 +1276,7 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
   (lsp-pyright-python-executable-cmd "python3")
   ;; Optional trims:
   ;; (lsp-pyright-use-library-code-for-types t)
-  ;; (lsp-pyright-typechecking-mode "basic") ; or "strict"/"off"
+  (lsp-pyright-type-checking-mode "off")
   )
 
 (use-package pyvenv
