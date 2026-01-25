@@ -615,7 +615,9 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
   (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
   (set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
   (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
-  (set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch))
+  (set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch)
+  ;; Critical: org-indent face must be fixed-pitch for proper alignment with variable-pitch-mode
+  (set-face-attribute 'org-indent nil :inherit '(org-hide fixed-pitch)))
 
 (defun my/org-mode-setup ()
   (org-indent-mode)
@@ -628,6 +630,12 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
   :hook (org-mode . my/org-mode-setup)
   :config
   (setq org-ellipsis " ▾")
+
+  ;; Indentation settings
+  (setq org-indent-indentation-per-level 2)  ; heading indentation in org-indent-mode
+  (setq org-list-indent-offset 2)            ; extra indent for list items (2 + default 2 = 4)
+  (setq org-adapt-indentation t)             ; indent content to align with heading level
+
   (setq org-agenda-start-with-log-mode t)
   (setq org-log-done 'time)
   (setq org-log-into-drawer t)
