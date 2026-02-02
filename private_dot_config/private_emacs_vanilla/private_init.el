@@ -442,6 +442,20 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
       "oT" '(multi-vterm                      :which-key "new terminal")
       "o-" '(dired-jump                       :which-key "Dired")
 
+      ;; Claude Code (AI assistant)
+      "a"  '(:ignore t                        :which-key "AI")
+      "aa" '(claude-code                      :which-key "Start Claude")
+      "ac" '(claude-code-continue             :which-key "Continue conversation")
+      "ar" '(claude-code-send-region          :which-key "Send region to Claude")
+      "as" '(claude-code-send-command         :which-key "Send command")
+      "ab" '(claude-code-switch-to-buffer     :which-key "Switch to Claude buffer")
+      "at" '(claude-code-toggle               :which-key "Toggle Claude window")
+      "ae" '(claude-code-fix-error-at-point   :which-key "Fix error at point")
+      "ay" '(claude-code-send-return          :which-key "Send Yes/Return")
+      "an" '(claude-code-send-escape          :which-key "Send No/Escape")
+      "a/" '(claude-code-slash-commands       :which-key "Slash commands menu")
+      "am" '(claude-code-transient            :which-key "Claude menu")
+
       "w" '(:keymap evil-window-map :which-key "windows")))
       
 (use-package evil
@@ -1451,6 +1465,14 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
             (lambda ()
               (setq-local evil-insert-state-cursor 'box)
               (evil-insert-state))))
+
+(use-package claude-code
+  :vc (:url "https://github.com/stevemolitor/claude-code.el" :rev :newest)
+  :after vterm
+  :preface
+  (setq claude-code-terminal-backend 'vterm)
+  :config
+  (claude-code-mode 1))
 
 (use-package rg)
 
