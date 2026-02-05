@@ -434,8 +434,23 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
       "v]" '(multi-vterm-next                 :which-key "next terminal")
       "v[" '(multi-vterm-prev                 :which-key "prev terminal")
 
-      "g"  '(:ignore t    :which-key "git")
-      "gg" '(magit-status :which-key "Magit status")
+      "g"  '(:ignore t           :which-key "git")
+      "gg" '(magit-status        :which-key "Magit status")
+      "gG" '(magit-dispatch      :which-key "Magit dispatch")
+      "gb" '(magit-blame         :which-key "Blame")
+      "gB" '(magit-blame-quit    :which-key "Blame quit")
+      "gc" '(magit-clone         :which-key "Clone")
+      "gd" '(magit-diff-buffer-file :which-key "Diff file")
+      "gD" '(magit-diff          :which-key "Diff")
+      "gf" '(magit-fetch         :which-key "Fetch")
+      "gF" '(magit-pull          :which-key "Pull")
+      "gl" '(magit-log-buffer-file :which-key "Log file")
+      "gL" '(magit-log           :which-key "Log")
+      "gp" '(magit-push          :which-key "Push")
+      "gr" '(magit-rebase        :which-key "Rebase")
+      "gs" '(magit-stage-file    :which-key "Stage file")
+      "gS" '(magit-stash         :which-key "Stash")
+      "gu" '(magit-unstage-file  :which-key "Unstage file")
 
       "o"  '(:ignore t                        :which-key "open")
       "ot" '(multi-vterm-dedicated-toggle     :which-key "toggle terminal")
@@ -1420,11 +1435,27 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
   (define-key projectile-command-map (kbd "p")
 	      #'projectile-persp-switch-project))
 
-(use-package magit
-   :commands (magit-status magit-get-current-branch)
-   :custom
-   (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
+(use-package transient
+  :config
+  ;; Make ESC work like C-g in transient popups
+  (define-key transient-map [escape] #'transient-quit-one)
 
+  ;; Better popup positioning - show below current window
+  (setq transient-display-buffer-action
+        '(display-buffer-below-selected
+          (dedicated . t)
+          (inhibit-same-window . t))))
+
+(use-package magit
+  :commands (magit-status magit-get-current-branch)
+  :custom
+  (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
+  :config
+  ;; Vim-like scroll commands
+  (evil-define-key* '(normal visual) magit-mode-map
+    "zt" #'evil-scroll-line-to-top
+    "zz" #'evil-scroll-line-to-center
+    "zb" #'evil-scroll-line-to-bottom))
 
 ;; NOTE: Make sure to configure a GitHub token before using this package!
 ;; - https://magit.vc/manual/forge/Token-Creation.html#Token-Creation
