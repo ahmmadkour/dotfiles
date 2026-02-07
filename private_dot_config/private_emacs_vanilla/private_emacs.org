@@ -2187,6 +2187,10 @@ Dired is a built-in file manager for Emacs that does some pretty amazing things!
   :config
   (set-face-attribute 'dired-directory nil :foreground "#89B4FA" :weight 'bold))
 
+(use-package diredfl
+  :ensure t
+  :hook (dired-mode . diredfl-mode))
+
   ;;(use-package dired-open
   ;;  :after dired
   ;;  :config

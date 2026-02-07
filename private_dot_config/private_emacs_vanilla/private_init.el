@@ -1526,6 +1526,10 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
   :config
   (set-face-attribute 'dired-directory nil :foreground "#89B4FA" :weight 'bold))
 
+(use-package diredfl
+  :ensure t
+  :hook (dired-mode . diredfl-mode))
+
   ;;(use-package dired-open
   ;;  :after dired
   ;;  :config
