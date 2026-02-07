@@ -1271,19 +1271,6 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
     (add-to-list 'lsp-file-watch-ignored-directories dir))
   :commands lsp lsp-deferred)
 
-(with-eval-after-load 'lsp-mode
-  (defun my/lsp-describe-thing-at-point-focus ()
-    "Describe symbol at point and focus the LSP help window."
-    (interactive)
-    (lsp-describe-thing-at-point)
-    (let ((win (get-buffer-window "*lsp-help*" 0)))
-      (when (window-live-p win)
-        (select-window win))))
-  (general-define-key
-   :states '(normal visual)
-   :keymaps 'lsp-mode-map
-   "K" #'my/lsp-describe-thing-at-point-focus))
-
 (use-package lsp-ui
   :hook (lsp-mode . lsp-ui-mode)
   :custom
@@ -1299,7 +1286,18 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
   ;; Peek - inline preview for definitions/references
   (lsp-ui-peek-enable t)                         ; enable peek feature
   (lsp-ui-peek-show-directory t)                 ; show file path in peek
-  :commands lsp-ui-mode)
+  :commands lsp-ui-mode
+  :config
+  (defun my/lsp-doc-focus ()
+    "Show lsp-ui-doc at point and focus it for scrolling. Press `q' to dismiss."
+    (interactive)
+    (lsp-ui-doc-show)
+    (run-with-idle-timer 0.5 nil #'lsp-ui-doc-focus-frame))
+  (define-key lsp-ui-doc-frame-mode-map [escape] #'lsp-ui-doc-unfocus-frame)
+  (general-define-key
+   :states '(normal visual)
+   :keymaps 'lsp-mode-map
+   "K" #'my/lsp-doc-focus))
 
 (use-package lsp-treemacs
   :commands lsp-treemacs-errors-list)
