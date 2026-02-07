@@ -635,21 +635,21 @@ This is to get Option-3 to return =#= and keep right option as it is
 
 ** Window Navigation
 
-Ergonomic window navigation with =M-h/j/k/l= (Option + vim keys). This overrides =M-h= (mark-paragraph) which is rarely used and still accessible via =M-x mark-paragraph=.
+Ergonomic window navigation with =C-M-h/j/k/l= (Ctrl+Option + vim keys). This avoids conflict with Aerospace which intercepts =M-h/j/k/l= at the OS level.
 
 In org-mode, use =M-arrow= keys for heading promotion/demotion instead (still available).
 
 #+begin_src emacs-lisp
 
-  ;; Ergonomic window navigation with M-h/j/k/l (Option + vim keys)
+  ;; Ergonomic window navigation with C-M-h/j/k/l (Ctrl+Option + vim keys)
   ;; Using :keymaps 'override to take precedence over mode-specific bindings
   (general-define-key
    :keymaps 'override
    :states '(normal insert visual emacs motion)
-   "M-h" 'evil-window-left
-   "M-j" 'evil-window-down
-   "M-k" 'evil-window-up
-   "M-l" 'evil-window-right)
+   "C-M-h" 'evil-window-left
+   "C-M-j" 'evil-window-down
+   "C-M-k" 'evil-window-up
+   "C-M-l" 'evil-window-right)
 
 #+end_src
 

@@ -501,15 +501,15 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
 (setq ns-alternate-modifier 'meta) ; left Option = Meta
 (setq ns-right-alternate-modifier 'none) ; right Option = literal Alt (# on Opt-3)
 
-;; Ergonomic window navigation with M-h/j/k/l (Option + vim keys)
+;; Ergonomic window navigation with C-M-h/j/k/l (Ctrl+Option + vim keys)
 ;; Using :keymaps 'override to take precedence over mode-specific bindings
 (general-define-key
  :keymaps 'override
  :states '(normal insert visual emacs motion)
- "M-h" 'evil-window-left
- "M-j" 'evil-window-down
- "M-k" 'evil-window-up
- "M-l" 'evil-window-right)
+ "C-M-h" 'evil-window-left
+ "C-M-j" 'evil-window-down
+ "C-M-k" 'evil-window-up
+ "C-M-l" 'evil-window-right)
 
 (use-package doom-themes
   :ensure t
