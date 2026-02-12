@@ -1492,7 +1492,7 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
   ;; Start vterm in insert state
   (add-hook 'vterm-mode-hook
             (lambda ()
-              (setq-local evil-insert-state-cursor 'box)
+              (setq-local evil-insert-state-cursor 'bar)
               (evil-insert-state))))
 
 (use-package claude-code
