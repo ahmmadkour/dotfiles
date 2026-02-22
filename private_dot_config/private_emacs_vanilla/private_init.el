@@ -1176,6 +1176,7 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
                  (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.23.2" "tsx/src"))
                  (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.23.2" "typescript/src"))
                  (yaml . ("https://github.com/ikatyang/tree-sitter-yaml" "v0.5.0"))
+                 (pkl . ("https://github.com/apple/tree-sitter-pkl" "v0.20.0"))
                  (prisma "https://github.com/victorhqc/tree-sitter-prisma")))
         (add-to-list 'treesit-language-source-alist grammar)
         ;; Only install `grammar' if we don't already have it
