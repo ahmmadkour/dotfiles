@@ -1454,7 +1454,8 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
   (evil-define-key* '(normal visual) magit-mode-map
     "zt" #'evil-scroll-line-to-top
     "zz" #'evil-scroll-line-to-center
-    "zb" #'evil-scroll-line-to-bottom))
+    "zb" #'evil-scroll-line-to-bottom)
+(define-key magit-mode-map (kbd "SPC") nil)) ;; clear SPC from overriding map so leader key works
 
 ;; NOTE: Make sure to configure a GitHub token before using this package!
 ;; - https://magit.vc/manual/forge/Token-Creation.html#Token-Creation
@@ -1542,3 +1543,7 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
     :config
     (evil-collection-define-key 'normal 'dired-mode-map
       "H" 'dired-hide-dotfiles-mode))
+
+(let ((local-config (expand-file-name "local.el" "~/.config/emacs_vanilla/")))
+  (when (file-exists-p local-config)
+    (load local-config nil 'nomessage)))

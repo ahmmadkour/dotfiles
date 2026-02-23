@@ -11,7 +11,7 @@ Start emacs with =emacs -q -l .config/emacs_vanilla/init.el=
 
 - =M-x nerd-icons-install-fonts=
 - [[Iosevka]] and [[https://fonts.google.com/specimen/Cantarell][Cantarell]] fonts need to be installed.
-
+  
 * Tips for Use
 
 For the links in this file, if you’re looking at this file in Emacs, put your cursor on a link and press =C-c C-o= or run =M-x org-open-at-point= to open the link in your web browser.
@@ -1989,7 +1989,8 @@ Transient is used by Magit for its popup menus. Configure it before Magit loads.
     (evil-define-key* '(normal visual) magit-mode-map
       "zt" #'evil-scroll-line-to-top
       "zz" #'evil-scroll-line-to-center
-      "zb" #'evil-scroll-line-to-bottom))
+      "zb" #'evil-scroll-line-to-bottom)
+  (define-key magit-mode-map (kbd "SPC") nil)) ;; clear SPC from overriding map so leader key works
 
   ;; NOTE: Make sure to configure a GitHub token before using this package!
   ;; - https://magit.vc/manual/forge/Token-Creation.html#Token-Creation
