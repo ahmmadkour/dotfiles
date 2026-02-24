@@ -152,6 +152,8 @@
   (savehist-additional-variables '(search-ring regexp-search-ring))
   (savehist-autosave-interval 60))
 
+(save-place-mode 1)
+
 (defvar my/default-font-size 160)
 (defvar my/default-variable-font-size 160)
 
