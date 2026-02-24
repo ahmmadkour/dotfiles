@@ -308,7 +308,8 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
       ;; TODO "bI" '(+ibuffer/open-for-current-workspace :which-key "ibuffer workspace")
       ;; TODO (:unless (modulep! :ui workspaces)
       ;; TODO "bb" '(switch-to-buffer :which-key "Switch buffer")
-      "bB" '(switch-to-buffer                   :which-key "switch buffer")
+      "bb" '(persp-counsel-switch-buffer         :which-key "Switch workspace buffer")
+      "bB" '(counsel-switch-buffer               :which-key "Switch buffer")
       "bc" '(clone-indirect-buffer              :which-key "Clone buffer")
       "bC" '(clone-indirect-buffer-other-window :which-key "Clone buffer other window")
       "bd" '(kill-current-buffer                :which-key "Kill buffer")
@@ -581,8 +582,7 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
   ;; Providing versions of common Emacs commands that are customized to make the best use of Ivy.
   (use-package counsel
     :demand t
-    :bind (("C-M-j" . 'counsel-switch-buffer)
-           :map minibuffer-local-map
+    :bind (:map minibuffer-local-map
            ("C-r" . 'counsel-minibuffer-history))
     :custom
     (counsel-linux-app-format-function #'counsel-linux-app-format-function-name-only)
