@@ -145,6 +145,13 @@
   (recentf-max-saved-items 200)
   (recentf-auto-cleanup 'never))
 
+(use-package savehist
+  :ensure nil
+  :init (savehist-mode 1)
+  :custom
+  (savehist-additional-variables '(search-ring regexp-search-ring))
+  (savehist-autosave-interval 60))
+
 (defvar my/default-font-size 160)
 (defvar my/default-variable-font-size 160)
 

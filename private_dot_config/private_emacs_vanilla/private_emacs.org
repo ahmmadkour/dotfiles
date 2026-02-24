@@ -238,6 +238,17 @@ Set sensible defaults globally and override per language.
 
 #+end_src
 
+#+begin_src emacs-lisp
+
+  (use-package savehist
+    :ensure nil
+    :init (savehist-mode 1)
+    :custom
+    (savehist-additional-variables '(search-ring regexp-search-ring))
+    (savehist-autosave-interval 60))
+
+#+end_src
+
 ** Font
 
 [[https://www.nerdfonts.com/font-downloads][Iosevka]] and [[https://fonts.google.com/specimen/Cantarell][Cantarell]] need to be installed.
