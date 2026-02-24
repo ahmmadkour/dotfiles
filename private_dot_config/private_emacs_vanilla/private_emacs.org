@@ -943,8 +943,8 @@ For more details watch [[https://youtu.be/VcgjTEa0kU4][Part 5]] and [[https://yo
         (sequence "BACKLOG(b)" "PLAN(p)" "READY(r)" "ACTIVE(a)" "REVIEW(v)" "WAIT(w@/!)" "HOLD(h)" "|" "COMPLETED(c)" "CANC(k@)")))
 
     (setq org-refile-targets
-      '(("Archive.org" :maxlevel . 1)
-        ("Tasks.org" :maxlevel . 1)))
+      '(("~/Workspace/org/Archive.org" :maxlevel . 1)
+        ("~/Workspace/org/Tasks.org" :maxlevel . 1)))
 
     ;; Save Org buffers after refiling!
     (advice-add 'org-refile :after 'org-save-all-org-buffers)
