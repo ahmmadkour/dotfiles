@@ -1214,6 +1214,15 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
     :config
     (os/setup-install-grammars))
 
+(use-package yasnippet
+  :diminish yas-minor-mode
+  :hook ((prog-mode . yas-minor-mode)
+         (org-mode  . yas-minor-mode))
+  :config (yas-reload-all))
+
+(use-package yasnippet-snippets
+  :after yasnippet)
+
 (use-package lsp-mode
   :init
   ;; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")

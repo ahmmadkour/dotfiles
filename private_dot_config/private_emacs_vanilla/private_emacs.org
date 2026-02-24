@@ -1571,6 +1571,23 @@ References:
 
 #+end_src
 
+**** yasnippet
+
+Snippet engine required by =lsp-mode= for expanding completions with parameter placeholders (=lsp-enable-snippet t=). Must be loaded before =lsp-mode=.
+
+#+begin_src emacs-lisp
+
+  (use-package yasnippet
+    :diminish yas-minor-mode
+    :hook ((prog-mode . yas-minor-mode)
+           (org-mode  . yas-minor-mode))
+    :config (yas-reload-all))
+
+  (use-package yasnippet-snippets
+    :after yasnippet)
+
+#+end_src
+
 **** lsp-mode
 
 We use the excellent [[https://emacs-lsp.github.io/lsp-mode/][lsp-mode]] to enable IDE-like functionality for many different programming languages via "language servers" that speak the [[https://microsoft.github.io/language-server-protocol/][Language Server Protocol]].
