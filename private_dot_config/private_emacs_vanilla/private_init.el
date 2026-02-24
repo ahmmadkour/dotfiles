@@ -1272,6 +1272,19 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
     (add-to-list 'lsp-file-watch-ignored-directories dir))
   :commands lsp lsp-deferred)
 
+(with-eval-after-load 'lsp-mode
+  (defun my/lsp-describe-thing-at-point-focus ()
+    "Describe symbol at point and focus the LSP help window."
+    (interactive)
+    (lsp-describe-thing-at-point)
+    (let ((win (get-buffer-window "*lsp-help*" 0)))
+      (when (window-live-p win)
+        (select-window win))))
+(general-define-key
+ :states '(normal visual)
+ :keymaps 'lsp-mode-map
+ "K" #'my/lsp-describe-thing-at-point-focus))
+
 (use-package lsp-ui
   :hook (lsp-mode . lsp-ui-mode)
   :custom
