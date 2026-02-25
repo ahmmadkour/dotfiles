@@ -255,6 +255,12 @@ Set sensible defaults globally and override per language.
 
 #+end_src
 
+#+begin_src emacs-lisp
+
+  (setq uniquify-buffer-name-style 'forward)
+
+#+end_src
+
 ** Font
 
 [[https://www.nerdfonts.com/font-downloads][Iosevka]] and [[https://fonts.google.com/specimen/Cantarell][Cantarell]] need to be installed.

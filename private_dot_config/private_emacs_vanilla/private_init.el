@@ -154,6 +154,8 @@
 
 (save-place-mode 1)
 
+(setq uniquify-buffer-name-style 'forward)
+
 (defvar my/default-font-size 160)
 (defvar my/default-variable-font-size 160)
 
