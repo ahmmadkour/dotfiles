@@ -510,6 +510,21 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
     :config
     (evil-collection-init))
 
+  ;; evil-surround — port of vim-surround
+  ;; Operators (normal mode):
+  ;;   ys <motion> <char>  — add surrounding     e.g. ysiw"  → wrap word in "
+  ;;   cs <old> <new>      — change surrounding  e.g. cs"'   → " to '
+  ;;   ds <char>           — delete surrounding  e.g. ds(    → remove parens
+  ;; Visual mode:
+  ;;   S <char>            — surround selection   e.g. viw S" → wrap word in "
+  ;; Examples:
+  ;;   ysiw)  → wrap word in ()        ysiw(  → wrap word in ( ) with spaces
+  ;;   cs"t   → change " to <tag>      dst    → delete surrounding tag
+  ;;   yss]   → surround entire line in []
+  (use-package evil-surround
+    :after evil
+    :config (global-evil-surround-mode 1))
+
 (setq ns-alternate-modifier 'meta) ; left Option = Meta
 (setq ns-right-alternate-modifier 'none) ; right Option = literal Alt (# on Opt-3)
 
