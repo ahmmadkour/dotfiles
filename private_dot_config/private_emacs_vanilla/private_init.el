@@ -525,6 +525,23 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
     :after evil
     :config (global-evil-surround-mode 1))
 
+  ;; evil-matchit — enhanced % matching
+  ;; Extends % to jump between:
+  ;;   - HTML/JSX tags: <div> ↔ </div>
+  ;;   - Block delimiters: if ↔ else ↔ end, do ↔ end, { ↔ }
+  ;;   - LaTeX: \begin{} ↔ \end{}
+  (use-package evil-matchit
+    :after evil
+    :config
+    (global-evil-matchit-mode 1)
+    ;; Register evil-matchit plugins for tree-sitter modes
+    (evilmi-load-plugin-rules '(python-ts-mode) '(python))
+    (evilmi-load-plugin-rules '(tsx-ts-mode) '(javascript html))
+    (evilmi-load-plugin-rules '(typescript-ts-mode) '(javascript))
+    (evilmi-load-plugin-rules '(js-ts-mode) '(javascript))
+    (evilmi-load-plugin-rules '(bash-ts-mode) '(sh))
+    (evilmi-load-plugin-rules '(c-ts-mode c++-ts-mode) '(c)))
+
 (setq ns-alternate-modifier 'meta) ; left Option = Meta
 (setq ns-right-alternate-modifier 'none) ; right Option = literal Alt (# on Opt-3)
 
