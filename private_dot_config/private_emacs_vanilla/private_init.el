@@ -632,6 +632,12 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
     :config
     (counsel-mode 1))
 
+(use-package wgrep
+  :defer t
+  :custom
+  (wgrep-auto-save-buffer t)
+  (wgrep-change-readonly-file t))
+
 (use-package ivy-prescient
   :after counsel
   :custom

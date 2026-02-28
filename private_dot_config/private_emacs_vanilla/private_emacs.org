@@ -841,6 +841,20 @@ Helm is an alternative.
 
 #+end_src
 
+*** Editable Grep Results with wgrep
+
+=wgrep= makes grep result buffers editable. Combined with =counsel-rg= (=SPC /=), this enables project-wide find-and-replace: search → =C-c C-o= (ivy-occur) → =C-c C-p= (wgrep) → edit matches → =C-c C-c= apply to all files.
+
+#+begin_src emacs-lisp
+
+  (use-package wgrep
+    :defer t
+    :custom
+    (wgrep-auto-save-buffer t)
+    (wgrep-change-readonly-file t))
+
+#+end_src
+
 *** Improved Candidate Sorting with prescient.el
 
 =prescient.el= provides some helpful behavior for sorting Ivy completion candidates based on how recently or frequently you select them.  This can be especially helpful when using =M-x= to run commands that you don't have bound to a key but still need to access occasionally.
