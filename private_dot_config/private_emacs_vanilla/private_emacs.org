@@ -2084,6 +2084,22 @@ Transient is used by Magit for its popup menus. Configure it before Magit loads.
 
 #+end_src
 
+** Diff-hl
+
+Show git change indicators (added/deleted/changed lines) in the fringe. Integrates with Magit to update indicators after git operations.
+
+#+begin_src emacs-lisp
+
+  (use-package diff-hl
+    :hook ((prog-mode . diff-hl-mode)
+           (org-mode  . diff-hl-mode)
+           (dired-mode . diff-hl-dired-mode)
+           (magit-pre-refresh  . diff-hl-magit-pre-refresh)
+           (magit-post-refresh . diff-hl-magit-post-refresh))
+    :config (diff-hl-flydiff-mode 1))
+
+#+end_src
+
 ** Commenting
 
 Emacs' built in commenting functionality =comment-dwim= (usually bound to =M-;=) doesn't always comment things in the way you might expect so we use [[https://github.com/redguardtoo/evil-nerd-commenter][evil-nerd-commenter]] to provide a more familiar behavior.

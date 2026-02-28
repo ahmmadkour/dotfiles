@@ -1528,6 +1528,14 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
 (use-package forge
   :after magit)
 
+(use-package diff-hl
+  :hook ((prog-mode . diff-hl-mode)
+         (org-mode  . diff-hl-mode)
+         (dired-mode . diff-hl-dired-mode)
+         (magit-pre-refresh  . diff-hl-magit-pre-refresh)
+         (magit-post-refresh . diff-hl-magit-post-refresh))
+  :config (diff-hl-flydiff-mode 1))
+
 (use-package evil-nerd-commenter
   :bind ("M-/" . evilnc-comment-or-uncomment-lines))
 
