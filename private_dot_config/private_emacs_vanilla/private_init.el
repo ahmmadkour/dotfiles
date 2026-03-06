@@ -156,6 +156,9 @@
 
 (setq uniquify-buffer-name-style 'forward)
 
+(setq ediff-split-window-function #'split-window-horizontally)
+(setq ediff-window-setup-function #'ediff-setup-windows-plain)
+
 (defvar my/default-font-size 160)
 (defvar my/default-variable-font-size 160)
 

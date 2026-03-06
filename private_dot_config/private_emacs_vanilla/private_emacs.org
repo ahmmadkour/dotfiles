@@ -261,6 +261,13 @@ Set sensible defaults globally and override per language.
 
 #+end_src
 
+#+begin_src emacs-lisp
+
+  (setq ediff-split-window-function #'split-window-horizontally)
+  (setq ediff-window-setup-function #'ediff-setup-windows-plain)
+
+#+end_src
+
 ** Font
 
 [[https://www.nerdfonts.com/font-downloads][Iosevka]] and [[https://fonts.google.com/specimen/Cantarell][Cantarell]] need to be installed.
