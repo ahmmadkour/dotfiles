@@ -678,6 +678,27 @@ One note about =general= package, as autoloads fire on functions, and not on var
 
 #+end_src
 
+** Avy
+
+Jump to any visible position on screen by typing a few characters.
+
+#+begin_src emacs-lisp
+
+  (use-package avy
+    :defer t
+    :custom
+    (avy-all-windows t)
+    (avy-background t)
+    (avy-timeout-seconds 0.3))
+
+  (my/leader-keys
+    "j"  '(:ignore t :which-key "jump")
+    "jj" '(avy-goto-char-2 :which-key "jump to char")
+    "jl" '(avy-goto-line :which-key "jump to line")
+    "jw" '(avy-goto-word-1 :which-key "jump to word"))
+
+#+end_src
+
 ** Remap option key
 
 This is to get Option-3 to return =#= and keep right option as it is

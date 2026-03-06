@@ -542,6 +542,19 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
     (evilmi-load-plugin-rules '(bash-ts-mode) '(sh))
     (evilmi-load-plugin-rules '(c-ts-mode c++-ts-mode) '(c)))
 
+(use-package avy
+  :defer t
+  :custom
+  (avy-all-windows t)
+  (avy-background t)
+  (avy-timeout-seconds 0.3))
+
+(my/leader-keys
+  "j"  '(:ignore t :which-key "jump")
+  "jj" '(avy-goto-char-2 :which-key "jump to char")
+  "jl" '(avy-goto-line :which-key "jump to line")
+  "jw" '(avy-goto-word-1 :which-key "jump to word"))
+
 (setq ns-alternate-modifier 'meta) ; left Option = Meta
 (setq ns-right-alternate-modifier 'none) ; right Option = literal Alt (# on Opt-3)
 
