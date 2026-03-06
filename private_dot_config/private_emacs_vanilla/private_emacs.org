@@ -803,8 +803,8 @@ Check out [[https://github.com/seagle0128/doom-modeline#customize][configuration
     :defer 0
     :diminish which-key-mode
     :config
-    (which-key-mode)
-    (setq which-key-idle-delay 1))
+    (setq which-key-idle-delay 0.4)
+    (which-key-mode))
 
 
 #+end_src

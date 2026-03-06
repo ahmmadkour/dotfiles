@@ -603,8 +603,8 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
   :defer 0
   :diminish which-key-mode
   :config
-  (which-key-mode)
-  (setq which-key-idle-delay 1))
+  (setq which-key-idle-delay 0.4)
+  (which-key-mode))
 
 (use-package ivy
   :diminish 
