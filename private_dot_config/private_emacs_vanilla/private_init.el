@@ -16,6 +16,13 @@
 ;; Can be set on the cli with `--init-directory <path>`
 (setq user-emacs-directory "~/.cache/emacs_vanilla")
 
+;; Redirect eln-cache into var/
+(when (and (featurep 'native-compile)
+           (fboundp 'startup-redirect-eln-cache))
+  (startup-redirect-eln-cache
+   (convert-standard-filename
+    (expand-file-name "var/eln-cache/" user-emacs-directory))))
+
 ;; Initialize package sources
 (require 'package)
 
