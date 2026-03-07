@@ -690,6 +690,29 @@ One note about =general= package, as autoloads fire on functions, and not on var
       (evilmi-load-plugin-rules '(bash-ts-mode) '(sh))
       (evilmi-load-plugin-rules '(c-ts-mode c++-ts-mode) '(c)))
 
+  ;; evil-textobj-tree-sitter — structural text objects via tree-sitter
+  ;; Operators: d = delete, c = change, y = yank, v = visual select
+  ;; Scope:     i = inner (contents only), a = around (including boundaries)
+  ;; Usage:     operator + scope + text object (e.g. daf = delete around function)
+  ;;   f — function    e.g. daf (delete function), cif (change function body)
+  ;;   a — parameter   e.g. daa (delete argument), cia (change inner argument)
+  ;;   c — class       e.g. dac (delete class), cic (change class body)
+  (use-package evil-textobj-tree-sitter
+    :after evil
+    :config
+    (define-key evil-outer-text-objects-map "f"
+      (evil-textobj-tree-sitter-get-textobj "function.outer"))
+    (define-key evil-inner-text-objects-map "f"
+      (evil-textobj-tree-sitter-get-textobj "function.inner"))
+    (define-key evil-outer-text-objects-map "a"
+      (evil-textobj-tree-sitter-get-textobj "parameter.outer"))
+    (define-key evil-inner-text-objects-map "a"
+      (evil-textobj-tree-sitter-get-textobj "parameter.inner"))
+    (define-key evil-outer-text-objects-map "c"
+      (evil-textobj-tree-sitter-get-textobj "class.outer"))
+    (define-key evil-inner-text-objects-map "c"
+      (evil-textobj-tree-sitter-get-textobj "class.inner")))
+
 #+end_src
 
 ** Avy
