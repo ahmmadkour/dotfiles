@@ -493,6 +493,7 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
       "a/" '(claude-code-slash-commands       :which-key "Slash commands menu")
       "am" '(claude-code-transient            :which-key "Claude menu")
 
+      "u"  '(vundo                            :which-key "undo tree")
       "w" '(:keymap evil-window-map :which-key "windows")))
       
 (use-package evil
@@ -600,6 +601,30 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
  "C-M-j" 'evil-window-down
  "C-M-k" 'evil-window-up
  "C-M-l" 'evil-window-right)
+
+(use-package vundo
+  :defer t
+  :config
+  (evil-define-key 'normal vundo-mode-map
+    "h" #'vundo-backward
+    "l" #'vundo-forward
+    "j" #'vundo-next
+    "k" #'vundo-previous
+    "q" #'vundo-quit
+    (kbd "RET") #'vundo-confirm
+    "d" #'vundo-diff
+    "m" #'vundo-diff-mark
+    "u" #'vundo-diff-unmark
+    "a" #'vundo-stem-root
+    "e" #'vundo-stem-end
+    "w" #'vundo-next-root
+    "b" #'vundo-stem-root
+    "r" #'vundo-goto-next-saved
+    "s" #'vundo-goto-last-saved
+    (kbd "C-c C-s") #'vundo-save)
+  :custom
+  (vundo-glyph-alist vundo-unicode-symbols)
+  (vundo-compact-display t))
 
 (use-package doom-themes
   :ensure t

@@ -631,6 +631,7 @@ One note about =general= package, as autoloads fire on functions, and not on var
         "a/" '(claude-code-slash-commands       :which-key "Slash commands menu")
         "am" '(claude-code-transient            :which-key "Claude menu")
 
+        "u"  '(vundo                            :which-key "undo tree")
         "w" '(:keymap evil-window-map :which-key "windows")))
         
   (use-package evil
@@ -764,6 +765,38 @@ In org-mode, use =M-arrow= keys for heading promotion/demotion instead (still av
    "C-M-j" 'evil-window-down
    "C-M-k" 'evil-window-up
    "C-M-l" 'evil-window-right)
+
+#+end_src
+
+** Undo Tree
+
+Visual undo tree navigation with =vundo=. Press =SPC u= to open, navigate with =hjkl=, press =q= to quit.
+
+#+begin_src emacs-lisp
+
+  (use-package vundo
+    :defer t
+    :config
+    (evil-define-key 'normal vundo-mode-map
+      "h" #'vundo-backward
+      "l" #'vundo-forward
+      "j" #'vundo-next
+      "k" #'vundo-previous
+      "q" #'vundo-quit
+      (kbd "RET") #'vundo-confirm
+      "d" #'vundo-diff
+      "m" #'vundo-diff-mark
+      "u" #'vundo-diff-unmark
+      "a" #'vundo-stem-root
+      "e" #'vundo-stem-end
+      "w" #'vundo-next-root
+      "b" #'vundo-stem-root
+      "r" #'vundo-goto-next-saved
+      "s" #'vundo-goto-last-saved
+      (kbd "C-c C-s") #'vundo-save)
+    :custom
+    (vundo-glyph-alist vundo-unicode-symbols)
+    (vundo-compact-display t))
 
 #+end_src
 
