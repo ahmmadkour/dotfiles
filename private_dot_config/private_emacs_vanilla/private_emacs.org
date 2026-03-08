@@ -735,6 +735,13 @@ Jump to any visible position on screen by typing a few characters.
     "jl" '(avy-goto-line :which-key "jump to line")
     "jw" '(avy-goto-word-1 :which-key "jump to word"))
 
+  (my/leader-keys
+    "s"  '(:ignore t :which-key "search")
+    "ss" '(swiper :which-key "search buffer")
+    "sp" '(counsel-rg :which-key "search project")
+    "si" '(imenu :which-key "jump to symbol")
+    "sl" '(counsel-locate :which-key "locate file"))
+
 #+end_src
 
 ** Remap option key

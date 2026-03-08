@@ -589,6 +589,13 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
   "jl" '(avy-goto-line :which-key "jump to line")
   "jw" '(avy-goto-word-1 :which-key "jump to word"))
 
+(my/leader-keys
+  "s"  '(:ignore t :which-key "search")
+  "ss" '(swiper :which-key "search buffer")
+  "sp" '(counsel-rg :which-key "search project")
+  "si" '(imenu :which-key "jump to symbol")
+  "sl" '(counsel-locate :which-key "locate file"))
+
 (setq ns-alternate-modifier 'meta) ; left Option = Meta
 (setq ns-right-alternate-modifier 'none) ; right Option = literal Alt (# on Opt-3)
 
