@@ -1199,45 +1199,11 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
   :config
   (org-roam-setup))
 
-(defun my/persp-switch-to-1 ()
-  (interactive)
-  (persp-switch-by-number 1))
-
-(defun my/persp-switch-to-2 ()
-  (interactive)
-  (persp-switch-by-number 2))
-
-(defun my/persp-switch-to-3 ()
-  (interactive)
-  (persp-switch-by-number 3))
-
-(defun my/persp-switch-to-4 ()
-  (interactive)
-  (persp-switch-by-number 4))
-
-(defun my/persp-switch-to-5 ()
-  (interactive)
-  (persp-switch-by-number 5))
-
-(defun my/persp-switch-to-6 ()
-  (interactive)
-  (persp-switch-by-number 6))
-
-(defun my/persp-switch-to-7 ()
-  (interactive)
-  (persp-switch-by-number 7))
-
-(defun my/persp-switch-to-8 ()
-  (interactive)
-  (persp-switch-by-number 8))
-
-(defun my/persp-switch-to-9 ()
-  (interactive)
-  (persp-switch-by-number 9))
-
-(defun my/persp-switch-to-0 ()
-  (interactive)
-  (persp-switch-by-number 0))
+(dotimes (i 10)
+  (let ((n (if (= i 0) 10 i)))
+    (defalias (intern (format "my/persp-switch-to-%d" (mod i 10)))
+      `(lambda () (interactive) (persp-switch-by-number ,n))
+      (format "Switch to perspective %d." n))))
 
 (use-package perspective
   :ensure t  ; use `:straight t` if using straight.el!
