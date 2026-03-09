@@ -1138,10 +1138,14 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
 (use-package gnuplot
   :commands (gnuplot-mode gnuplot-make-buffer org-plot/gnuplot))
 
-(use-package org-bullets
-  :hook (org-mode . org-bullets-mode)
+(use-package org-modern
+  :hook ((org-mode . org-modern-mode)
+         (org-agenda-finalize . org-modern-agenda))
   :custom
-  (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")))
+  (org-modern-star '("◉" "○" "●" "○" "●" "○" "●"))
+  (org-modern-hide-stars nil)
+  (org-modern-table-vertical 1)
+  (org-modern-table-horizontal 0.2))
 
 (defun my/org-mode-visual-fill ()
   (setq visual-fill-column-width 120

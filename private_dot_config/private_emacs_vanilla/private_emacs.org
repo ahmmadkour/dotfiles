@@ -1446,16 +1446,18 @@ Doom-style local leader keybindings for org-mode using =SPC m= prefix.
 
 ** Nicer Heading Bullets
 
-[[https://github.com/sabof/org-bullets][org-bullets]] replaces the heading stars in =org-mode= buffers with nicer looking characters that you can control.
-
-Another option for this is [[https://github.com/integral-dw/org-superstar-mode][org-superstar-mode]]
+[[https://github.com/minad/org-modern][org-modern]] is a superset of =org-bullets= — also styles TODO badges, timestamps, priorities, tables, and block delimiters.
 
 #+begin_src emacs-lisp
 
-  (use-package org-bullets
-    :hook (org-mode . org-bullets-mode)
+  (use-package org-modern
+    :hook ((org-mode . org-modern-mode)
+           (org-agenda-finalize . org-modern-agenda))
     :custom
-    (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")))
+    (org-modern-star '("◉" "○" "●" "○" "●" "○" "●"))
+    (org-modern-hide-stars nil)
+    (org-modern-table-vertical 1)
+    (org-modern-table-horizontal 0.2))
 
 #+end_src
 
