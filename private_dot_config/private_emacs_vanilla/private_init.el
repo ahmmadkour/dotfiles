@@ -156,7 +156,7 @@
   :ensure nil
   :init (savehist-mode 1)
   :custom
-  (savehist-additional-variables '(search-ring regexp-search-ring))
+  (savehist-additional-variables '(search-ring regexp-search-ring vertico-repeat-history))
   (savehist-autosave-interval 60))
 
 (save-place-mode 1)
@@ -179,7 +179,7 @@
 
 ;; Make ESC quit prompts
   (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
-  (global-set-key (kbd "s-f") #'swiper)
+  (global-set-key (kbd "s-f") #'consult-line)
 
   (defun my/yank-buffer-path (&optional root)
     "Copy the current buffer's path to the kill ring."
@@ -209,72 +209,42 @@
     "Find file in Emacs private config directory."
     (interactive)
     (let ((default-directory (expand-file-name "~/.config/emacs_vanilla/")))
-      (call-interactively (if (fboundp 'counsel-find-file)
-                            #'counsel-find-file
-                          #'find-file))))
+      (call-interactively #'find-file)))
 
   (defun my/browse-in-emacsd ()
     "Browse files from `user-emacs-directory'."
     (interactive)
     (let ((default-directory (expand-file-name user-emacs-directory)))
-      (call-interactively (if (fboundp 'counsel-find-file)
-                            #'counsel-find-file
-                          #'find-file))))
+      (call-interactively #'find-file)))
 
   (defun my/find-file-in-emacsd  ()
     "Find a file under `user-emacs-directory', recursively."
     (interactive)
     (let ((default-directory (expand-file-name user-emacs-directory)))
-      (call-interactively (if (fboundp 'counsel-file-jump)
-                            #'counsel-file-jump
-                           (user-error "counsel-file-jump not available")))))
+      (call-interactively #'consult-find)))
 
   (defun my/open-roam-dir ()
     "Find file in Roam directory."
     (interactive)
     (let ((default-directory (expand-file-name "~/Workspace/org/roam")))
-      (call-interactively (if (fboundp 'counsel-find-file)
-                            #'counsel-find-file
-                          #'find-file))))
+      (call-interactively #'find-file)))
 
   (defun my/org-roam-search ()
-    "Ripgrep search in Org-roam notes with Ivy results."
+    "Ripgrep search in Org-roam notes."
     (interactive)
-    (let ((default-directory (expand-file-name "~/Workspace/org/roam")))
-      (counsel-rg "" default-directory)))
+    (consult-ripgrep (expand-file-name "~/Workspace/org/roam")))
 
 (defun my/search-project (&optional arg)
   "Conduct a text search in the current project root.
-If prefix ARG is set, include ignored/hidden files.
-
-Replaces Doom Emacs-specific dispatch with standard package checks."
+If prefix ARG is set, prompt for a project to search in."
   (interactive "P")
-  (let* ((projectile-project-root nil)
-         (current-prefix-arg (unless (eq arg 'other) arg))
-         (default-directory
-           (if (eq arg 'other)
-               (if-let* ((projects (projectile-relevant-known-projects)))
-                   (completing-read "Search project: " projects nil t)
-                 (user-error "There are no known projects"))
-             default-directory)))
-    (call-interactively
-     (cond ((and (featurep 'ivy) (fboundp 'counsel-rg))
-            (let ((counsel-rg-base-command
-                   (if arg
-                       "rg -S --no-heading --line-number --color never --hidden --no-ignore --glob !.git %s ."
-                     "rg -S --no-heading --line-number --color never %s .")))
-              (lambda ()
-                (interactive)
-                (counsel-rg "" default-directory))))
-           ((and (featurep 'ivy) (fboundp 'swiper-helm-project))
-            #'swiper-helm-project) ; Standard Ivy/Swiper search (often combined)
-           ((and (featurep 'helm) (fboundp 'helm-project-do-ag))
-            #'helm-project-do-ag) ; Standard Helm search (using Ag or similar)
-           ((and (featurep 'vertico) (fboundp 'consult-ripgrep))
-            #'consult-ripgrep)    ; Standard Vertico/Consult search
-           ((fboundp 'projectile-ripgrep)
-            #'projectile-ripgrep) ; Fallback to Projectile's ripgrep integration
-           (t (user-error "No project search tool available (requires Swiper, Helm, Consult, or projectile-ripgrep)"))))))
+  (let ((default-directory
+          (if arg
+              (if-let* ((projects (projectile-relevant-known-projects)))
+                  (completing-read "Search project: " projects nil t)
+                (user-error "There are no known projects"))
+            default-directory)))
+    (consult-ripgrep default-directory)))
 
 
   (use-package general
@@ -291,7 +261,7 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
       "/" '(my/search-project :which-key "Search project")
 
       "t"  '(:ignore t          :which-key "toggles")
-      "tt" '(counsel-load-theme :which-key "choose theme")
+      "tt" '(consult-theme :which-key "choose theme")
       "."  'find-file
 
 
@@ -302,7 +272,7 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
       "fe"  '(my/find-file-in-emacsd                  :which-key "Find file in emacs.d")
       "fE"  '(my/browse-in-emacsd                     :which-key "Browse emacs.d")
       "ff"  '(find-file                               :which-key "Find file")
-      "fF"  '(counsel-file-jump                       :which-key "Find file from here")
+      "fF"  '(consult-find                             :which-key "Find file from here")
       ;; TODO (:when (modulep! :config literate)
       ;;  :desc "Open heading in literate config" "h" #'+literate/find-heading)
       "fl"  '(locate                                  :which-key "Locate file")
@@ -310,7 +280,7 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
       "fpo" '(my/find-file-in-private-config          :which-key "Find file in private config")
       "fpt" '(org-babel-tangle                        :which-key "Tangle config file")
       ;; TODO "P"  '(my/open-private-config                :which-key "Browse private config")
-      "fr"  '(counsel-recentf                         :which-key "Recent files")
+      "fr"  '(consult-recent-file                      :which-key "Recent files")
       ;; TODO "R" '(my/move-this-file                     :which-key "Rename/move file")
       "fs"  '(basic-save-buffer                       :which-key "Save file")
       "fS"  '(write-file                              :which-key "Save file as...")
@@ -329,8 +299,8 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
       ;; TODO "bI" '(+ibuffer/open-for-current-workspace :which-key "ibuffer workspace")
       ;; TODO (:unless (modulep! :ui workspaces)
       ;; TODO "bb" '(switch-to-buffer :which-key "Switch buffer")
-      "bb" '(persp-counsel-switch-buffer         :which-key "Switch workspace buffer")
-      "bB" '(counsel-switch-buffer               :which-key "Switch buffer")
+      "bb" '(persp-switch-to-buffer              :which-key "Switch workspace buffer")
+      "bB" '(consult-buffer                      :which-key "Switch buffer")
       "bc" '(clone-indirect-buffer              :which-key "Clone buffer")
       "bC" '(clone-indirect-buffer-other-window :which-key "Clone buffer other window")
       "bd" '(kill-current-buffer                :which-key "Kill buffer")
@@ -365,15 +335,8 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
       ;; OTOD "cl" '(+default/lsp-command-map                  :which-key "LSP")
       "cr" '(lsp-rename                                :which-key "LSP Rename")
       "cS" '(lsp-treemacs-symbols                      :which-key "Symbols")
-      ;;(:when (modulep! :completion ivy)
-      "cj" '(lsp-ivy-workspace-symbol                  :which-key "Jump to symbol in current workspace")
-      "cJ" '(lsp-ivy-global-workspace-symbol           :which-key "Jump to symbol in any workspace")
-      ;;(:when (modulep! :completion helm)
-      ;; "cj"  '(helm-lsp-workspace-symbol                 :which-key "Jump to symbol in current workspace")
-      ;; "cJ"  '(helm-lsp-global-workspace-symbol          :which-key "Jump to symbol in any workspace")
-      ;;(:when (modulep! :completion vertico)
-      ;; "cj"   #'consult-lsp-symbols                         :which-key "Jump to symbol in current workspace")
-      ;; "cJ"   (cmd!! #'consult-lsp-symbols 'all-workspaces) :which-key "Jump to symbol in any workspace")
+      "cj" '(consult-lsp-symbols                       :which-key "Jump to symbol in current workspace")
+      "cJ" '((lambda () (interactive) (consult-lsp-symbols t)) :which-key "Jump to symbol in any workspace")
       ;;(:when (modulep! :ui treemacs +lsp)
       "cX" '(lsp-treemacs-errors-list                :which-key "Errors list")
       "cy" '(lsp-treemacs-call-hierarchy             :which-key "Incoming call hierarchy")
@@ -591,10 +554,10 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
 
 (my/leader-keys
   "s"  '(:ignore t :which-key "search")
-  "ss" '(swiper :which-key "search buffer")
-  "sp" '(counsel-rg :which-key "search project")
-  "si" '(imenu :which-key "jump to symbol")
-  "sl" '(counsel-locate :which-key "locate file"))
+  "ss" '(consult-line :which-key "search buffer")
+  "sp" '(consult-ripgrep :which-key "search project")
+  "si" '(consult-imenu :which-key "jump to symbol")
+  "sl" '(consult-locate :which-key "locate file"))
 
 (setq ns-alternate-modifier 'meta) ; left Option = Meta
 (setq ns-right-alternate-modifier 'none) ; right Option = literal Alt (# on Opt-3)
@@ -671,44 +634,82 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
   (setq which-key-idle-delay 0.4)
   (which-key-mode))
 
-(use-package ivy
-  :diminish 
-  :bind (("C-s" . swiper)
-         :map ivy-minibuffer-map
-         ("TAB" . ivy-alt-done)
-         ("C-l" . ivy-alt-done)
-         ("C-j" . ivy-next-line)
-         ("C-k" . ivy-previous-line)
-         :map ivy-switch-buffer-map
-         ("C-k" . ivy-previous-line)
-         ("C-l" . ivy-done)
-         ("C-d" . ivy-switch-buffer-kill)
-         :map ivy-reverse-i-search-map
-         ("C-k" . ivy-previous-line)
-         ("C-d" . ivy-reverse-i-search-kill))
+;; Vertico — vertical completion UI
+(use-package vertico
+  :init (vertico-mode)
+  :bind (:map vertico-map
+         ("C-j" . vertico-next)
+         ("C-k" . vertico-previous)
+         ("C-l" . vertico-insert)
+         ("TAB" . vertico-insert))
+  :custom
+  (vertico-cycle t))
+
+;; Directory navigation: RET enters directory, DEL goes up
+(use-package vertico-directory
+  :after vertico
+  :ensure nil
+  :bind (:map vertico-map
+         ("RET" . vertico-directory-enter)
+         ("DEL" . vertico-directory-delete-char)
+         ("M-DEL" . vertico-directory-delete-word))
+  :hook (rfn-eshadow-update-overlay . vertico-directory-tidy))
+
+;; Recall last completion session with M-r
+(use-package vertico-repeat
+  :after vertico
+  :ensure nil
+  :bind ("M-r" . vertico-repeat)
+  :hook (minibuffer-setup . vertico-repeat-save))
+
+;; Orderless — space-separated fuzzy matching (tokens match in any order)
+(use-package orderless
+  :custom
+  (completion-styles '(orderless basic))
+  (completion-category-overrides '((file (styles partial-completion)))))
+
+;; Marginalia — rich annotations in the minibuffer (docstrings, file sizes, etc.)
+(use-package marginalia
+  :bind (:map minibuffer-local-map
+         ("M-A" . marginalia-cycle))
+  :init (marginalia-mode))
+
+;; Consult — search and navigation commands (replaces counsel/swiper)
+(use-package consult
+  :bind (("C-s" . consult-line)
+         ("C-r" . consult-history)
+         :map minibuffer-local-map
+         ("C-r" . consult-history))
+  :custom
+  (consult-narrow-key "<")
   :config
-  (ivy-mode 1)
-  (setq ivy-use-selectable-prompt t))
+  ;; Use consult for xref
+  (setq xref-show-xrefs-function #'consult-xref
+        xref-show-definitions-function #'consult-xref))
 
-  (use-package nerd-icons-ivy-rich
-    :after ivy-rich
-    :init (nerd-icons-ivy-rich-mode 1))
-  
-  ;; Use information on M-x commands
-  (use-package ivy-rich
-    :after ivy
-    :init
-    (ivy-rich-mode 1))
+;; Embark — contextual actions (C-.) and export to grep buffer (C-c C-o)
+(use-package embark
+  :bind (("C-." . embark-act)
+         ("C-c C-o" . embark-export)
+         ("C-h B" . embark-bindings))
+  :config
+  (setq prefix-help-command #'embark-prefix-help-command))
 
-  ;; Providing versions of common Emacs commands that are customized to make the best use of Ivy.
-  (use-package counsel
-    :demand t
-    :bind (:map minibuffer-local-map
-           ("C-r" . 'counsel-minibuffer-history))
-    :custom
-    (counsel-linux-app-format-function #'counsel-linux-app-format-function-name-only)
-    :config
-    (counsel-mode 1))
+(use-package embark-consult
+  :after (embark consult)
+  :hook (embark-collect-mode . consult-preview-at-point-mode))
+
+;; Icons in completion candidates
+(use-package nerd-icons-completion
+  :after marginalia
+  :config
+  (nerd-icons-completion-mode)
+  (add-hook 'marginalia-mode-hook #'nerd-icons-completion-marginalia-setup))
+
+;; LSP symbol search via consult (replaces lsp-ivy)
+(use-package consult-lsp
+  :after (consult lsp-mode)
+  :commands (consult-lsp-symbols consult-lsp-diagnostics))
 
 (use-package wgrep
   :defer t
@@ -716,24 +717,13 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
   (wgrep-auto-save-buffer t)
   (wgrep-change-readonly-file t))
 
-(use-package ivy-prescient
-  :after counsel
-  :custom
-  (ivy-prescient-enable-filtering nil)
-  :config
-  (prescient-persist-mode 1) ;; sorting remembered across sessions!
-  (ivy-prescient-mode 1))
-
 ;; Better formatted help documentation
 (use-package helpful
   :commands (helpful-callable helpful-variable helpful-command helpful-key)
-  :custom
-  (counsel-describe-function-function #'helpful-callable)
-  (counsel-describe-variable-function #'helpful-variable)
   :bind
-  ([remap describe-function] . counsel-describe-function)
+  ([remap describe-function] . helpful-callable)
   ([remap describe-command] . helpful-command)
-  ([remap describe-variable] . counsel-describe-variable)
+  ([remap describe-variable] . helpful-variable)
   ([remap describe-key] . helpful-key))
 
 (with-eval-after-load 'helpful
@@ -947,7 +937,7 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
     "m *" '(org-ctrl-c-star                  :which-key "Toggle heading")
     "m -" '(org-ctrl-c-minus                 :which-key "Toggle list type")
     "m ," '(org-switchb                      :which-key "Switch org buffer")
-    "m ." '(counsel-org-goto                 :which-key "Jump to heading")
+    "m ." '(consult-org-heading              :which-key "Jump to heading")
     "m A" '(org-archive-subtree-default      :which-key "Archive subtree")
     "m e" '(org-export-dispatch              :which-key "Export")
     "m f" '(org-footnote-action              :which-key "Footnote")
@@ -1032,8 +1022,8 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
 
     ;; Goto (m g)
     "m g"   '(:ignore t                      :which-key "goto")
-    "m g g" '(counsel-org-goto               :which-key "Goto heading")
-    "m g G" '(counsel-org-goto-all           :which-key "Goto all")
+    "m g g" '(consult-org-heading             :which-key "Goto heading")
+    "m g G" '(consult-org-agenda             :which-key "Goto all")
     "m g c" '(org-clock-goto                 :which-key "Clock goto")
     "m g i" '(org-id-goto                    :which-key "ID goto")
     "m g r" '(org-refile-goto-last-stored    :which-key "Refile goto last")
@@ -1225,7 +1215,7 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
    "s-0"     'my/persp-switch-to-0)
   :config
   (my/leader-keys
-    "," '(persp-counsel-switch-buffer :which-key "persp switch buffer")
+    "," '(persp-switch-to-buffer :which-key "persp switch buffer")
     "TAB" '(:keymap perspective-map :which-key "perspectives")
     "TAB d" '(persp-kill :which-key "persp-kill"))
   :init
@@ -1421,9 +1411,6 @@ Replaces Doom Emacs-specific dispatch with standard package checks."
 
 (use-package lsp-treemacs
   :commands lsp-treemacs-errors-list)
-
-(use-package lsp-ivy
-  :commands lsp-ivy-workspace-symbol)
 
 (use-package flycheck
   :ensure t
