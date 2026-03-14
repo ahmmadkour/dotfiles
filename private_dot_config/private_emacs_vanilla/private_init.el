@@ -23,10 +23,14 @@
    (convert-standard-filename
     (expand-file-name "var/eln-cache/" user-emacs-directory))))
 
+(global-auto-revert-mode 1)
+(unless (daemonp) (server-start))
+
 ;; Initialize package sources
 (require 'package)
 
 (setq package-archives '(("melpa" . "https://melpa.org/packages/")
+                         ("nongnu" . "https://elpa.nongnu.org/nongnu/")
                          ("org" . "https://orgmode.org/elpa/")
                          ("elpa" . "https://elpa.gnu.org/packages/")))
 
@@ -455,6 +459,14 @@ If prefix ARG is set, prompt for a project to search in."
       "an" '(claude-code-send-escape          :which-key "Send No/Escape")
       "a/" '(claude-code-slash-commands       :which-key "Slash commands menu")
       "am" '(claude-code-transient            :which-key "Claude menu")
+      "ax" '(claude-code-send-command-with-context :which-key "Send with context")
+      "ao" '(claude-code-send-buffer-file          :which-key "Send buffer file")
+      "af" '(claude-code-fork                      :which-key "Fork conversation")
+      "aR" '(claude-code-resume                    :which-key "Resume session")
+      "ak" '(claude-code-kill                      :which-key "Kill Claude")
+      "aM" '(claude-code-cycle-mode                :which-key "Cycle mode")
+      "az" '(claude-code-toggle-read-only-mode     :which-key "Toggle read-only")
+      "ai" '(claude-code-new-instance              :which-key "New instance")
 
       "u"  '(vundo                            :which-key "undo tree")
       "w" '(:keymap evil-window-map :which-key "windows")))
@@ -1613,12 +1625,27 @@ If prefix ARG is set, prompt for a project to search in."
               (setq-local evil-insert-state-cursor 'bar)
               (evil-insert-state))))
 
+(use-package eat
+  :ensure t)
+
 (use-package claude-code
   :vc (:url "https://github.com/stevemolitor/claude-code.el" :rev :newest)
-  :after vterm
-  :preface
-  (setq claude-code-terminal-backend 'vterm)
+  :after eat
   :config
+  (setq claude-code-use-vterm t)
+  (setq claude-code-no-delete-other-windows t)
+  (setq claude-code-toggle-auto-select t)
+  (setq claude-code-notification-function
+        (lambda (title message)
+          (call-process "osascript" nil nil nil
+                        "-e" (format "display notification \"%s\" with title \"%s\" sound name \"Glass\""
+                                     message title))))
+  (add-hook 'claude-code-start-hook
+            (lambda ()
+              (setq-local cursor-type nil)
+              (setq-local cursor-in-non-selected-windows nil)
+              (setq-local blink-cursor-mode nil)
+              (display-line-numbers-mode 0)))
   (claude-code-mode 1))
 
 (use-package rg)
