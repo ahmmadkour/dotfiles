@@ -1606,6 +1606,8 @@ If prefix ARG is set, prompt for a project to search in."
   (setq multi-vterm-dedicated-window-height-percent 30)
 
   ;; Start vterm in insert state
+  (evil-define-key 'insert vterm-mode-map (kbd "<escape>") #'evil-normal-state)
+
   (add-hook 'vterm-mode-hook
             (lambda ()
               (setq-local evil-insert-state-cursor 'bar)
