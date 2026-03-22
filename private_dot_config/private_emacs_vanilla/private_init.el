@@ -268,7 +268,6 @@ If prefix ARG is set, prompt for a project to search in."
       "tt" '(consult-theme :which-key "choose theme")
       "."  'find-file
 
-
       "f"   '(:ignore t                               :which-key "file")
       "fc"  '(editorconfig-find-current-editorconfig  :which-key "Open project editorconfig")
       "fd"  '(dired                                   :which-key "Find directory")
@@ -374,6 +373,13 @@ If prefix ARG is set, prompt for a project to search in."
       "nrr" '(org-roam-buffer-toggle :which-key "Toggle roam buffer")
       "nf"  '(my/open-roam-dir       :which-key "Find file in notes")
       "ns"  '(my/org-roam-search     :which-key "Search notes")
+      "na"  '(org-agenda             :which-key "Org agenda")
+      "nl"  '(org-store-link         :which-key "Store link")
+      "nm"  '(org-tags-view          :which-key "Tags search")
+      "nn"  '(org-capture            :which-key "Org capture")
+      "nN"  '(org-capture-goto-target :which-key "Goto capture")
+      "nt"  '(org-todo-list          :which-key "Todo list")
+      "nv"  '(org-search-view        :which-key "View search")
 
       ;;; <leader> p --- project
       "p"  '(:ignore t                                  :which-key "project")
