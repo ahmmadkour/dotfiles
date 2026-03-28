@@ -266,6 +266,7 @@ If prefix ARG is set, prompt for a project to search in."
 
       "t"  '(:ignore t          :which-key "toggles")
       "tt" '(consult-theme :which-key "choose theme")
+      ","  '(consult-project-buffer :which-key "Switch project buffer")
       "."  'find-file
 
       "f"   '(:ignore t                               :which-key "file")
@@ -302,7 +303,7 @@ If prefix ARG is set, prompt for a project to search in."
       ;; TODO "bI" '(+ibuffer/open-for-current-workspace :which-key "ibuffer workspace")
       ;; TODO (:unless (modulep! :ui workspaces)
       ;; TODO "bb" '(switch-to-buffer :which-key "Switch buffer")
-      "bb" '(persp-switch-to-buffer              :which-key "Switch workspace buffer")
+      "bb" '(consult-project-buffer              :which-key "Switch project buffer")
       "bB" '(consult-buffer                      :which-key "Switch buffer")
       "bc" '(clone-indirect-buffer              :which-key "Clone buffer")
       "bC" '(clone-indirect-buffer-other-window :which-key "Clone buffer other window")
@@ -315,7 +316,7 @@ If prefix ARG is set, prompt for a project to search in."
       "bM" '(bookmark-delete                    :which-key "Delete bookmark")
       "bn" '(next-buffer                        :which-key "Next buffer")
       "bN" '(evil-buffer-new                    :which-key "New empty buffer")
-      "bO" '(persp-kill-other-buffers           :which-key "Kill other buffers")
+      ;; Use SPC pk (projectile-kill-buffers) to kill all project buffers
       "bp" '(previous-buffer                    :which-key "Previous buffer")
       "br" '(revert-buffer                      :which-key "Revert buffer")
       "bR" '(rename-buffer                      :which-key "Rename buffer")
@@ -400,7 +401,7 @@ If prefix ARG is set, prompt for a project to search in."
       "pi" '(projectile-invalidate-cache                :which-key "Invalidate project cache")
       "pk" '(projectile-kill-buffers                    :which-key "Kill project buffers")
       "po" '(find-sibling-file                          :which-key "Find sibling file")
-      "pp" '(projectile-persp-switch-project            :which-key "Switch project")
+      "pp" '(projectile-switch-project                   :which-key "Switch project")
       "pr" '(projectile-recentf                         :which-key "Find recent project files")
       "pR" '(projectile-run-project                     :which-key "Run project")
       "ps" '(projectile-save-project-buffers            :which-key "Save project files")
@@ -1207,39 +1208,9 @@ If prefix ARG is set, prompt for a project to search in."
   :config
   (org-roam-setup))
 
-(dotimes (i 10)
-  (let ((n (if (= i 0) 10 i)))
-    (defalias (intern (format "my/persp-switch-to-%d" (mod i 10)))
-      `(lambda () (interactive) (persp-switch-by-number ,n))
-      (format "Switch to perspective %d." n))))
-
-(use-package perspective
-  :ensure t  ; use `:straight t` if using straight.el!
-  :general
-  ("C-c P C" 'persp-kill-buffer*
-   "s-{"     'previous-buffer        ; Cmd-Shift-[ cycles buffers within perspective
-   "s-}"     'next-buffer            ; Cmd-Shift-] cycles buffers within perspective
-   "C-s-["   'persp-prev             ; Cmd-Ctrl-[ switches perspectives
-   "C-s-]"   'persp-next             ; Cmd-Ctrl-] switches perspectives
-   "s-1"     'my/persp-switch-to-1
-   "s-2"     'my/persp-switch-to-2
-   "s-3"     'my/persp-switch-to-3
-   "s-4"     'my/persp-switch-to-4
-   "s-5"     'my/persp-switch-to-5
-   "s-6"     'my/persp-switch-to-6
-   "s-7"     'my/persp-switch-to-7
-   "s-8"     'my/persp-switch-to-8
-   "s-9"     'my/persp-switch-to-9
-   "s-0"     'my/persp-switch-to-0)
-  :config
-  (my/leader-keys
-    "," '(persp-switch-to-buffer :which-key "persp switch buffer")
-    "TAB" '(:keymap perspective-map :which-key "perspectives")
-    "TAB d" '(persp-kill :which-key "persp-kill"))
-  :init
-  (setq persp-mode-prefix-key (kbd "C-c M-p"))
-  (setq persp-modestring-short t)  ; Only show current perspective, not all
-  (persp-mode))
+(general-define-key
+ "s-{"     'previous-buffer
+ "s-}"     'next-buffer)
 
 (use-package treesit
     :ensure nil
@@ -1550,13 +1521,6 @@ If prefix ARG is set, prompt for a project to search in."
   (setq projectile-enable-caching t)
   (setq projectile-sort-order 'recentf)
   (setq projectile-switch-project-action #'projectile-find-file))
-
-(use-package persp-projectile
-  :after (perspective projectile)
-  :config
-  ;; Use this instead of `projectile-switch-project'
-  (define-key projectile-command-map (kbd "p")
-	      #'projectile-persp-switch-project))
 
 (use-package transient
   :config
