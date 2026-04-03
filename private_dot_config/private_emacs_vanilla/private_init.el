@@ -828,8 +828,7 @@ If prefix ARG is set, prompt for a project to search in."
   (setq org-habit-graph-column 60)
 
   (setq org-todo-keywords
-    '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d!)")
-      (sequence "BACKLOG(b)" "PLAN(p)" "READY(r)" "ACTIVE(a)" "REVIEW(v)" "WAIT(w@/!)" "HOLD(h)" "|" "COMPLETED(c)" "CANC(k@)")))
+    '((sequence "TODO(t)" "ACTIVE(a)" "|" "DONE(d)")))
 
   (setq org-refile-targets
     '(("~/Workspace/org/Archive.org" :maxlevel . 1)
