@@ -181,6 +181,9 @@
 ;; Set the variable pitch face
 (set-face-attribute 'variable-pitch nil :font "Cantarell" :height my/default-variable-font-size :weight 'regular)
 
+;; Give styled elements (org-modern tags, badges) room to breathe
+(setq-default line-spacing 0.1)
+
 ;; Make ESC quit prompts
   (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
   (global-set-key (kbd "s-f") #'consult-line)
@@ -1154,7 +1157,9 @@ If prefix ARG is set, prompt for a project to search in."
   (org-modern-star '("◉" "○" "●" "○" "●" "○" "●"))
   (org-modern-hide-stars nil)
   (org-modern-table-vertical 1)
-  (org-modern-table-horizontal 0.2))
+  (org-modern-table-horizontal 0.2)
+  :config
+  (set-face-attribute 'org-modern-symbol nil :family "Iosevka Nerd Font"))
 
 (defun my/org-mode-visual-fill ()
   (setq visual-fill-column-width 120

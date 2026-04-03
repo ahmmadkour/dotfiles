@@ -303,6 +303,9 @@ Set sensible defaults globally and override per language.
   ;; Set the variable pitch face
   (set-face-attribute 'variable-pitch nil :font "Cantarell" :height my/default-variable-font-size :weight 'regular)
 
+  ;; Give styled elements (org-modern tags, badges) room to breathe
+  (setq-default line-spacing 0.1)
+
 #+end_src
 
 * Keybinding
@@ -1453,7 +1456,9 @@ Doom-style local leader keybindings for org-mode using =SPC m= prefix.
     (org-modern-star '("◉" "○" "●" "○" "●" "○" "●"))
     (org-modern-hide-stars nil)
     (org-modern-table-vertical 1)
-    (org-modern-table-horizontal 0.2))
+    (org-modern-table-horizontal 0.2)
+    :config
+    (set-face-attribute 'org-modern-symbol nil :family "Iosevka Nerd Font"))
 
 #+end_src
 
