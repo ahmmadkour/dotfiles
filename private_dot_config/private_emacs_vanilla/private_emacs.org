@@ -1598,6 +1598,20 @@ This snippet adds a hook to =org-mode= buffers so that =my/org-babel-tangle-conf
    "s-}"     'next-buffer)
 #+end_src
 
+* TRAMP (Remote Editing)
+
+#+begin_src emacs-lisp
+
+  (with-eval-after-load 'tramp
+    (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
+    (setq tramp-use-connection-share nil)       ; let SSH config handle multiplexing
+    (setq remote-file-name-inhibit-locks t)     ; no .#lockfiles on remote
+    (setq tramp-verbose 1)                      ; minimal logging
+    (setq vc-handled-backends '(Git))           ; only check git, skip others on remote
+    (setq tramp-use-scp-direct-remote-copying t)) ; faster file transfers
+
+#+end_src
+
 * Development
 ** Languages
 
@@ -1747,6 +1761,8 @@ References:
     :init
     ;; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
     (setq lsp-keymap-prefix "C-c l")
+    ;; Disable noisy TRAMP LSP clients that interfere with gopls
+    (setq lsp-disabled-clients '(semgrep-ls-tramp golangci-lint-tramp))
     :custom
     (lsp-enable-snippet t)
     (lsp-headerline-breadcrumb-enable t)
@@ -1953,6 +1969,9 @@ You can use the pyvenv package to use =virtualenv= environments in Emacs.  The =
   (setq lsp-go-analyses '((shadow . t)
                         (simplifycompositelit . :json-false)))
 
+  ;; Disable gopls remote daemon mode (causes issues over TRAMP)
+  (setq lsp-go-gopls-server-args nil)
+
 #+end_src
 
 *** Rust
@@ -2141,7 +2160,9 @@ Show git change indicators (added/deleted/changed lines) in the fringe. Integrat
   (use-package diff-hl
     :hook ((prog-mode . diff-hl-mode)
            (org-mode  . diff-hl-mode)
-           (dired-mode . diff-hl-dired-mode)
+           (dired-mode . (lambda ()
+                           (unless (file-remote-p default-directory)
+                             (diff-hl-dired-mode))))
            (magit-pre-refresh  . diff-hl-magit-pre-refresh)
            (magit-post-refresh . diff-hl-magit-post-refresh))
     :config (diff-hl-flydiff-mode 1))
@@ -2355,7 +2376,9 @@ Dired is a built-in file manager for Emacs that does some pretty amazing things!
       (evil-define-key 'normal dired-mode-map (kbd "SPC") nil))) ;; clear SPC keybinding in dired so my/leader-keys works
 
 (use-package nerd-icons-dired
-  :hook (dired-mode . nerd-icons-dired-mode)
+  :hook (dired-mode . (lambda ()
+                        (unless (file-remote-p default-directory)
+                          (nerd-icons-dired-mode))))
   :config
   (set-face-attribute 'dired-directory nil :foreground "#89B4FA" :weight 'bold))
 
@@ -2372,7 +2395,9 @@ Dired is a built-in file manager for Emacs that does some pretty amazing things!
   ;;                                ("mkv" . "mpv"))))
 
   (use-package dired-hide-dotfiles
-    :hook (dired-mode . dired-hide-dotfiles-mode)
+    :hook (dired-mode . (lambda ()
+                          (unless (file-remote-p default-directory)
+                            (dired-hide-dotfiles-mode))))
     :config
     (evil-collection-define-key 'normal 'dired-mode-map
       "H" 'dired-hide-dotfiles-mode))

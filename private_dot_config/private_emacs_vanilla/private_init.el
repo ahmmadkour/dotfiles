@@ -1249,6 +1249,14 @@ If prefix ARG is set, prompt for a project to search in."
  "s-{"     'previous-buffer
  "s-}"     'next-buffer)
 
+(with-eval-after-load 'tramp
+  (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
+  (setq tramp-use-connection-share nil)       ; let SSH config handle multiplexing
+  (setq remote-file-name-inhibit-locks t)     ; no .#lockfiles on remote
+  (setq tramp-verbose 1)                      ; minimal logging
+  (setq vc-handled-backends '(Git))           ; only check git, skip others on remote
+  (setq tramp-use-scp-direct-remote-copying t)) ; faster file transfers
+
 (use-package treesit
     :ensure nil
     :mode (("\\.tsx\\'" . tsx-ts-mode)
@@ -1340,6 +1348,8 @@ If prefix ARG is set, prompt for a project to search in."
   :init
   ;; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
   (setq lsp-keymap-prefix "C-c l")
+  ;; Disable noisy TRAMP LSP clients that interfere with gopls
+  (setq lsp-disabled-clients '(semgrep-ls-tramp golangci-lint-tramp))
   :custom
   (lsp-enable-snippet t)
   (lsp-headerline-breadcrumb-enable t)
@@ -1465,6 +1475,9 @@ If prefix ARG is set, prompt for a project to search in."
 (setq lsp-go-analyses '((shadow . t)
                       (simplifycompositelit . :json-false)))
 
+;; Disable gopls remote daemon mode (causes issues over TRAMP)
+(setq lsp-go-gopls-server-args nil)
+
 (use-package rust-mode
   :ensure t
   :init
@@ -1582,7 +1595,9 @@ If prefix ARG is set, prompt for a project to search in."
 (use-package diff-hl
   :hook ((prog-mode . diff-hl-mode)
          (org-mode  . diff-hl-mode)
-         (dired-mode . diff-hl-dired-mode)
+         (dired-mode . (lambda ()
+                         (unless (file-remote-p default-directory)
+                           (diff-hl-dired-mode))))
          (magit-pre-refresh  . diff-hl-magit-pre-refresh)
          (magit-post-refresh . diff-hl-magit-post-refresh))
   :config (diff-hl-flydiff-mode 1))
@@ -1663,7 +1678,9 @@ If prefix ARG is set, prompt for a project to search in."
       (evil-define-key 'normal dired-mode-map (kbd "SPC") nil))) ;; clear SPC keybinding in dired so my/leader-keys works
 
 (use-package nerd-icons-dired
-  :hook (dired-mode . nerd-icons-dired-mode)
+  :hook (dired-mode . (lambda ()
+                        (unless (file-remote-p default-directory)
+                          (nerd-icons-dired-mode))))
   :config
   (set-face-attribute 'dired-directory nil :foreground "#89B4FA" :weight 'bold))
 
@@ -1680,7 +1697,9 @@ If prefix ARG is set, prompt for a project to search in."
   ;;                                ("mkv" . "mpv"))))
 
   (use-package dired-hide-dotfiles
-    :hook (dired-mode . dired-hide-dotfiles-mode)
+    :hook (dired-mode . (lambda ()
+                          (unless (file-remote-p default-directory)
+                            (dired-hide-dotfiles-mode))))
     :config
     (evil-collection-define-key 'normal 'dired-mode-map
       "H" 'dired-hide-dotfiles-mode))
