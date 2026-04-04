@@ -208,9 +208,10 @@
   With non-nil prefix INCLUDE-ROOT, also include the project's root."
     (interactive "P")
     (my/yank-buffer-path
-     (if include-root
-         (file-name-directory (directory-file-name (projectile-project-root)))
-       (projectile-project-root))))
+     (let ((root (project-root (project-current t))))
+       (if include-root
+           (file-name-directory (directory-file-name root))
+         root))))
 
   (defun my/find-file-in-private-config ()
     "Find file in Emacs private config directory."
@@ -247,11 +248,52 @@ If prefix ARG is set, prompt for a project to search in."
   (interactive "P")
   (let ((default-directory
           (if arg
-              (if-let* ((projects (projectile-relevant-known-projects)))
+              (if-let* ((projects (project-known-project-roots)))
                   (completing-read "Search project: " projects nil t)
                 (user-error "There are no known projects"))
             default-directory)))
     (consult-ripgrep default-directory)))
+
+(defun my/project-add-known-project ()
+  "Prompt for a directory and register it as a known project."
+  (interactive)
+  (let ((dir (read-directory-name "Add project: ")))
+    (project-remember-project (project-current nil dir))
+    (message "Added project: %s" dir)))
+
+(defun my/discover-projects ()
+  "Prompt for a directory and discover projects under it."
+  (interactive)
+  (let ((dir (read-directory-name "Discover projects under: " "~/Workspace/code")))
+    (project-remember-projects-under dir)
+    (message "Discovered projects under: %s" dir)))
+
+(defun my/project-recentf ()
+  "Find a recent file in the current project."
+  (interactive)
+  (let* ((pr (project-current t))
+         (root (expand-file-name (project-root pr)))
+         (recent-files
+          (seq-filter
+           (lambda (f) (string-prefix-p root (expand-file-name f)))
+           recentf-list)))
+    (if recent-files
+        (find-file (completing-read "Recent project file: " recent-files nil t))
+      (user-error "No recent files in project %s" root))))
+
+(defun my/project-save-buffers ()
+  "Save all modified buffers belonging to the current project."
+  (interactive)
+  (let* ((pr (project-current t))
+         (bufs (project-buffers pr))
+         (count 0))
+    (dolist (buf bufs)
+      (when (and (buffer-file-name buf)
+                 (buffer-modified-p buf))
+        (with-current-buffer buf
+          (save-buffer)
+          (setq count (1+ count)))))
+    (message "Saved %d project buffer(s)" count)))
 
 
   (use-package general
@@ -319,7 +361,7 @@ If prefix ARG is set, prompt for a project to search in."
       "bM" '(bookmark-delete                    :which-key "Delete bookmark")
       "bn" '(next-buffer                        :which-key "Next buffer")
       "bN" '(evil-buffer-new                    :which-key "New empty buffer")
-      ;; Use SPC pk (projectile-kill-buffers) to kill all project buffers
+      ;; Use SPC pk (project-kill-buffers) to kill all project buffers
       "bp" '(previous-buffer                    :which-key "Previous buffer")
       "br" '(revert-buffer                      :which-key "Revert buffer")
       "bR" '(rename-buffer                      :which-key "Rename buffer")
@@ -387,31 +429,22 @@ If prefix ARG is set, prompt for a project to search in."
 
       ;;; <leader> p --- project
       "p"  '(:ignore t                                  :which-key "project")
-      "p." '(+default/browse-project                    :which-key "Browse project")
-      "p>" '(doom/browse-in-other-project               :which-key "Browse other project")
-      "p!" '(projectile-run-shell-command-in-root       :which-key "Run cmd in project root")
-      "p&" '(projectile-run-async-shell-command-in-root :which-key "Async cmd in project root")
-      "pa" '(projectile-add-known-project               :which-key "Add new project")
-      "pb" '(projectile-switch-to-buffer                :which-key "Switch to project buffer")
-      "pc" '(projectile-compile-project                 :which-key "Compile in project")
-      "pC" '(projectile-repeat-last-command             :which-key "Repeat last command")
-      "pd" '(projectile-remove-known-project            :which-key "Remove known project")
-      "pD" '(+default/discover-projects                 :which-key "Discover projects in folder")
-      "pe" '(projectile-edit-dir-locals                 :which-key "Edit project .dir-locals")
-      "pf" '(projectile-find-file                       :which-key "Find file in project")
-      ;;"pF" '(doom/find-file-in-other-project            :which-key "Find file in other project")
-      "pg" '(projectile-configure-project               :which-key "Configure project")
-      "pi" '(projectile-invalidate-cache                :which-key "Invalidate project cache")
-      "pk" '(projectile-kill-buffers                    :which-key "Kill project buffers")
+      "p." '(project-dired                              :which-key "Browse project")
+      "p!" '(project-shell-command                      :which-key "Run cmd in project root")
+      "p&" '(project-async-shell-command                :which-key "Async cmd in project root")
+      "pa" '(my/project-add-known-project               :which-key "Add new project")
+      "pb" '(project-switch-to-buffer                   :which-key "Switch to project buffer")
+      "pc" '(project-compile                            :which-key "Compile in project")
+      "pC" '(recompile                                  :which-key "Repeat last command")
+      "pd" '(project-forget-project                     :which-key "Remove known project")
+      "pD" '(my/discover-projects                       :which-key "Discover projects in folder")
+      "pf" '(project-find-file                          :which-key "Find file in project")
+      "pk" '(project-kill-buffers                       :which-key "Kill project buffers")
       "po" '(find-sibling-file                          :which-key "Find sibling file")
-      "pp" '(projectile-switch-project                   :which-key "Switch project")
-      "pr" '(projectile-recentf                         :which-key "Find recent project files")
-      "pR" '(projectile-run-project                     :which-key "Run project")
-      "ps" '(projectile-save-project-buffers            :which-key "Save project files")
-      "pT" '(projectile-test-project                    :which-key "Test project")
+      "pp" '(project-switch-project                     :which-key "Switch project")
+      "pr" '(my/project-recentf                         :which-key "Find recent project files")
+      "ps" '(my/project-save-buffers                    :which-key "Save project files")
       "pt" '(multi-vterm-project                        :which-key "project terminal")
-      ;;"px" '(doom/open-project-scratch-buffer           :which-key "Pop up scratch buffer")
-      ;;"pX" '(doom/switch-to-project-scratch-buffer)     :which-key "Switch to scratch buffer")
 
       ;;; <leader> q --- quit/session
       "q"  '(:ignore t                     :which-key "quit/session")
@@ -1509,22 +1542,13 @@ If prefix ARG is set, prompt for a project to search in."
   (setf (alist-get 'python-ts-mode apheleia-mode-alist) 'black)
   (setf (alist-get 'rust-ts-mode apheleia-mode-alist) 'rustfmt))
 
-(use-package projectile
-  :diminish projectile-mode
+(use-package project
+  :ensure nil
   :config
-  (projectile-mode)
-  (projectile-load-known-projects)
-  (projectile-discover-projects-in-search-path)
-  ;;:custom ((projectile-completion-system 'ivy))
-  :bind-keymap
-  ("C-c p" . projectile-command-map)
-  :init
   (when (file-directory-p "~/Workspace/code")
-    (setq projectile-project-search-path '("~/Workspace/code")))
-  (setq projectile-indexing-method 'alien)
-  (setq projectile-enable-caching t)
-  (setq projectile-sort-order 'recentf)
-  (setq projectile-switch-project-action #'projectile-find-file))
+    (project-remember-projects-under "~/Workspace/code"))
+  (setq project-switch-commands #'project-find-file)
+  (global-set-key (kbd "C-c p") project-prefix-map))
 
 (use-package transient
   :config
