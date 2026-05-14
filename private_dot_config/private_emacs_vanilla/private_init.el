@@ -1495,6 +1495,21 @@ If prefix ARG is set, prompt for a project to search in."
 (when-let ((ra (executable-find "rust-analyzer")))
   (setq rustic-analyzer-command (list ra)))
 
+(use-package markdown-mode
+  :ensure t
+  :mode (("\\.md\\'" . markdown-mode)
+         ("\\.markdown\\'" . markdown-mode)
+         ("README\\.md\\'" . gfm-mode))
+  :custom
+  (markdown-command "pandoc")
+  (markdown-fontify-code-blocks-natively t))
+
+(use-package grip-mode
+  :ensure t
+  :after markdown-mode
+  :bind (:map markdown-mode-command-map
+              ("g" . grip-mode)))
+
 (editorconfig-mode 1)
 
 (use-package corfu

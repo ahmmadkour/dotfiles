@@ -2007,6 +2007,39 @@ Install YAML Lsp server with:
 
 #+end_src
 
+*** Markdown
+
+[[https://jblevins.org/projects/markdown-mode/][markdown-mode]] provides a major mode for editing Markdown files. [[https://github.com/seagle0128/grip-mode][grip-mode]] previews buffers via GitHub's =grip= so the rendered output matches GitHub.
+
+Install =grip= first (required for =grip-mode=):
+
+#+begin_src shell :tangle no
+
+  pipx install grip
+
+#+end_src
+
+A GitHub personal access token avoids the unauthenticated rate limit. Create one with no scopes at https://github.com/settings/tokens, then either set =grip-github-user= / =grip-github-password= below or add credentials to =~/.netrc=.
+
+#+begin_src emacs-lisp
+
+  (use-package markdown-mode
+    :ensure t
+    :mode (("\\.md\\'" . markdown-mode)
+           ("\\.markdown\\'" . markdown-mode)
+           ("README\\.md\\'" . gfm-mode))
+    :custom
+    (markdown-command "pandoc")
+    (markdown-fontify-code-blocks-natively t))
+
+  (use-package grip-mode
+    :ensure t
+    :after markdown-mode
+    :bind (:map markdown-mode-command-map
+                ("g" . grip-mode)))
+
+#+end_src
+
 ** Editorconfig
 #+begin_src emacs-lisp
 (editorconfig-mode 1)
