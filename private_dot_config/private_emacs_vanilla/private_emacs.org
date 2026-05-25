@@ -1958,19 +1958,51 @@ You can use the pyvenv package to use =virtualenv= environments in Emacs.  The =
 #+end_src>
 *** Go
 
+Configuration follows the [[https://go.dev/gopls/editor/emacs][official gopls Emacs guide]] (the =lsp-mode= path). =go-ts-mode= is already wired to =lsp-deferred= via the global =lsp-mode= hook list above, so we only need the gopls-specific settings and save hooks here.
+
+Install the language server and make sure =$(go env GOPATH)/bin= is on your =PATH=:
+
 #+begin_src shell
 
   go install golang.org/x/tools/gopls@latest
 
 #+end_src
 
+**** gopls settings
+
+Stable settings are exposed as =lsp-mode= variables; extra settings are registered directly with =lsp-register-custom-settings=. After changing any of these, restart the server with =M-x lsp-workspace-restart=.
+
 #+begin_src emacs-lisp
 
   (setq lsp-go-analyses '((shadow . t)
-                        (simplifycompositelit . :json-false)))
+                          (simplifycompositelit . :json-false)))
+
+  ;; Don't insert parameter placeholders in function completions.
+  ;; Flip to t if you'd rather have snippet-style placeholders (you have
+  ;; lsp-enable-snippet + yasnippet enabled).
+  (setq lsp-gopls-use-placeholders nil)
 
   ;; Disable gopls remote daemon mode (causes issues over TRAMP)
   (setq lsp-go-gopls-server-args nil)
+
+  (with-eval-after-load 'lsp-mode
+    (lsp-register-custom-settings
+     '(("gopls.completeUnimported" t t)
+       ("gopls.staticcheck" t t))))
+
+#+end_src
+
+**** Format and organize imports on save
+
+The guide recommends letting gopls format the buffer and manage imports on save (equivalent to =goimports=: adds missing imports, removes unused ones). This supersedes the =gofmt= apheleia formatter for Go (disabled in [[Format on Save (per language)]]) so the two don't fight.
+
+#+begin_src emacs-lisp
+
+  (defun lsp-go-install-save-hooks ()
+    "Format buffer and organize imports via gopls before saving."
+    (add-hook 'before-save-hook #'lsp-format-buffer t t)
+    (add-hook 'before-save-hook #'lsp-organize-imports t t))
+  (add-hook 'go-ts-mode-hook #'lsp-go-install-save-hooks)
 
 #+end_src
 
@@ -2095,8 +2127,9 @@ A GitHub personal access token avoids the unauthenticated rate limit. Create one
 
 [[https://github.com/radian-software/apheleia][apheleia]] runs formatters on save with minimal disruption. It works well with LSP and is fast.
 
+Go is intentionally not handled here — gopls formats and organizes imports on save (see [[Go]]).
+
 Install the formatter binaries once:
-- Go: =gofmt= (comes with Go)
 - TypeScript/JS: =prettier=
 - Python: =black=
 - Rust: =rustfmt= (comes with Rust toolchain)
@@ -2108,8 +2141,6 @@ Install the formatter binaries once:
     (apheleia-global-mode +1)
     :config
     ;; Map major modes to formatters
-    (setf (alist-get 'gofmt apheleia-formatters)
-          '("gofmt"))
     (setf (alist-get 'prettier apheleia-formatters)
           '("prettier" "--stdin-filepath" filepath))
     (setf (alist-get 'black apheleia-formatters)
@@ -2117,7 +2148,10 @@ Install the formatter binaries once:
     (setf (alist-get 'rustfmt apheleia-formatters)
           '("rustfmt" "--emit" "stdout"))
 
-    (setf (alist-get 'go-ts-mode apheleia-mode-alist) 'gofmt)
+    ;; Go is formatted by gopls (lsp-format-buffer + lsp-organize-imports on
+    ;; save); disable apheleia's default gofmt mapping so they don't conflict.
+    (setf (alist-get 'go-mode apheleia-mode-alist) nil)
+    (setf (alist-get 'go-ts-mode apheleia-mode-alist) nil)
     (setf (alist-get 'typescript-ts-mode apheleia-mode-alist) 'prettier)
     (setf (alist-get 'tsx-ts-mode apheleia-mode-alist) 'prettier)
     (setf (alist-get 'python-ts-mode apheleia-mode-alist) 'black)

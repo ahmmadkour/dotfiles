@@ -1473,10 +1473,26 @@ If prefix ARG is set, prompt for a project to search in."
   :hook (python-ts-mode . pyvenv-mode))
 
 (setq lsp-go-analyses '((shadow . t)
-                      (simplifycompositelit . :json-false)))
+                        (simplifycompositelit . :json-false)))
+
+;; Don't insert parameter placeholders in function completions.
+;; Flip to t if you'd rather have snippet-style placeholders (you have
+;; lsp-enable-snippet + yasnippet enabled).
+(setq lsp-gopls-use-placeholders nil)
 
 ;; Disable gopls remote daemon mode (causes issues over TRAMP)
 (setq lsp-go-gopls-server-args nil)
+
+(with-eval-after-load 'lsp-mode
+  (lsp-register-custom-settings
+   '(("gopls.completeUnimported" t t)
+     ("gopls.staticcheck" t t))))
+
+(defun lsp-go-install-save-hooks ()
+  "Format buffer and organize imports via gopls before saving."
+  (add-hook 'before-save-hook #'lsp-format-buffer t t)
+  (add-hook 'before-save-hook #'lsp-organize-imports t t))
+(add-hook 'go-ts-mode-hook #'lsp-go-install-save-hooks)
 
 (use-package rust-mode
   :ensure t
@@ -1555,8 +1571,6 @@ If prefix ARG is set, prompt for a project to search in."
   (apheleia-global-mode +1)
   :config
   ;; Map major modes to formatters
-  (setf (alist-get 'gofmt apheleia-formatters)
-        '("gofmt"))
   (setf (alist-get 'prettier apheleia-formatters)
         '("prettier" "--stdin-filepath" filepath))
   (setf (alist-get 'black apheleia-formatters)
@@ -1564,7 +1578,10 @@ If prefix ARG is set, prompt for a project to search in."
   (setf (alist-get 'rustfmt apheleia-formatters)
         '("rustfmt" "--emit" "stdout"))
 
-  (setf (alist-get 'go-ts-mode apheleia-mode-alist) 'gofmt)
+  ;; Go is formatted by gopls (lsp-format-buffer + lsp-organize-imports on
+  ;; save); disable apheleia's default gofmt mapping so they don't conflict.
+  (setf (alist-get 'go-mode apheleia-mode-alist) nil)
+  (setf (alist-get 'go-ts-mode apheleia-mode-alist) nil)
   (setf (alist-get 'typescript-ts-mode apheleia-mode-alist) 'prettier)
   (setf (alist-get 'tsx-ts-mode apheleia-mode-alist) 'prettier)
   (setf (alist-get 'python-ts-mode apheleia-mode-alist) 'black)
