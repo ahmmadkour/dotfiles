@@ -1693,6 +1693,19 @@ If prefix ARG is set, prompt for a project to search in."
               (display-line-numbers-mode 0)))
   (claude-code-mode 1))
 
+(use-package agent-shell
+  :ensure t
+  :commands (agent-shell agent-shell-anthropic-start-claude-code)
+  :config
+  ;; Reuse your existing Claude Code subscription/login.
+  (setq agent-shell-anthropic-authentication
+        (agent-shell-anthropic-make-authentication :login t)))
+
+;; --- API-key billing instead of subscription? Swap the setq above for: ---
+;; (setq agent-shell-anthropic-authentication
+;;       (agent-shell-anthropic-make-authentication
+;;        :api-key (lambda () (getenv "ANTHROPIC_API_KEY"))))
+
 (use-package rg)
 
 (use-package dired

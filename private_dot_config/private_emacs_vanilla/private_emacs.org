@@ -2353,6 +2353,39 @@ Make sure that you have the [[https://github.com/akermu/emacs-libvterm/#requirem
 
 #+end_src
 
+** agent-shell
+
+[[https://github.com/xenodium/agent-shell][agent-shell]] is a native Emacs buffer for talking to LLM agents over the
+[[https://agentclientprotocol.com][Agent Client Protocol (ACP)]]. Unlike =claude-code.el= (which drives the =claude= CLI in a
+terminal), agent-shell launches an ACP backend process and renders the session in a
+=comint= buffer. For Claude that backend is =claude-agent-acp=, built on the Claude Agent SDK.
+
+Install the backend once (so =claude-agent-acp= is on your =PATH=):
+
+#+begin_src sh :tangle no
+npm install -g @agentclientprotocol/claude-agent-acp
+#+end_src
+
+#+begin_src emacs-lisp
+
+  (use-package agent-shell
+    :ensure t
+    :commands (agent-shell agent-shell-anthropic-start-claude-code)
+    :config
+    ;; Reuse your existing Claude Code subscription/login.
+    (setq agent-shell-anthropic-authentication
+          (agent-shell-anthropic-make-authentication :login t)))
+
+  ;; --- API-key billing instead of subscription? Swap the setq above for: ---
+  ;; (setq agent-shell-anthropic-authentication
+  ;;       (agent-shell-anthropic-make-authentication
+  ;;        :api-key (lambda () (getenv "ANTHROPIC_API_KEY"))))
+
+#+end_src
+
+Start a session with =M-x agent-shell-anthropic-start-claude-code=, or =M-x agent-shell=
+to pick from any configured agent.
+
 * File Management
 ** rg
 
