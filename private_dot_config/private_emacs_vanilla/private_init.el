@@ -1699,7 +1699,10 @@ If prefix ARG is set, prompt for a project to search in."
   :config
   ;; Reuse your existing Claude Code subscription/login.
   (setq agent-shell-anthropic-authentication
-        (agent-shell-anthropic-make-authentication :login t)))
+        (agent-shell-anthropic-make-authentication :login t))
+  ;; No line numbers in the agent-shell buffer.
+  (add-hook 'agent-shell-mode-hook
+            (lambda () (display-line-numbers-mode 0))))
 
 ;; --- API-key billing instead of subscription? Swap the setq above for: ---
 ;; (setq agent-shell-anthropic-authentication
