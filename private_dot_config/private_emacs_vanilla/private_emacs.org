@@ -389,14 +389,33 @@ One note about =general= package, as autoloads fire on functions, and not on var
                 (if-let* ((projects (project-known-project-roots)))
                     (completing-read "Search project: " projects nil t)
                   (user-error "There are no known projects"))
-              default-directory)))
+              (if-let* ((proj (project-current)))
+                  (project-root proj)
+                default-directory))))
+      (consult-ripgrep default-directory)))
+
+  (defun my/search-current-dir ()
+    "Ripgrep search starting from the current buffer's directory."
+    (interactive)
+    (consult-ripgrep default-directory))
+
+  (defun my/search-dir ()
+    "Pick a directory (recent dirs, projects, bookmarks) then ripgrep there.
+  Uses consult-dir's picker to choose the directory FIRST, since consult-dir
+  cannot redirect a ripgrep search that is already running."
+    (interactive)
+    (require 'consult-dir)
+    (let ((default-directory (or (consult-dir--pick) default-directory)))
       (consult-ripgrep default-directory)))
 
   (defun my/project-add-known-project ()
     "Prompt for a directory and register it as a known project."
     (interactive)
-    (let ((dir (read-directory-name "Add project: ")))
-      (project-remember-project (project-current nil dir))
+    (let ((dir (expand-file-name (read-directory-name "Add project: "))))
+      ;; Use the detected project when DIR is under VC/has a marker, otherwise
+      ;; fall back to a transient project so any directory can be registered.
+      (project-remember-project (or (project-current nil dir)
+                                    (cons 'transient dir)))
       (message "Added project: %s" dir)))
 
   (defun my/discover-projects ()
@@ -756,7 +775,9 @@ Jump to any visible position on screen by typing a few characters.
   (my/leader-keys
     "s"  '(:ignore t :which-key "search")
     "ss" '(consult-line :which-key "search buffer")
-    "sp" '(consult-ripgrep :which-key "search project")
+    "sp" '(my/search-project :which-key "search project")
+    "sd" '(my/search-current-dir :which-key "search current dir")
+    "sD" '(my/search-dir :which-key "search in chosen dir")
     "si" '(consult-imenu :which-key "jump to symbol")
     "sl" '(consult-locate :which-key "locate file"))
 
@@ -988,6 +1009,30 @@ Any package using =completing-read= automatically gets the full UI — no integr
   (use-package consult-lsp
     :after (consult lsp-mode)
     :commands (consult-lsp-symbols consult-lsp-diagnostics))
+
+  ;; consult-dir — jump to a directory from inside a FILE-NAME prompt.
+  ;;
+  ;; HOW IT ACTUALLY WORKS (don't be misled):
+  ;;   consult-dir does NOT change default-directory or re-run a command. It only
+  ;;   INSERTS the chosen directory into the minibuffer text, relying on Emacs'
+  ;;   find-file "shadow" trick — inserting /an/absolute/path makes the text
+  ;;   before it inactive (greyed). So it works in file-name prompts but NOT in
+  ;;   consult-ripgrep, where the path just lands in the search string (you'd see
+  ;;   #dir#query and get no matches). For ripgrep, use `my/search-dir' instead.
+  ;;
+  ;; USAGE (file-name prompts only — find-file / SPC . / C-x C-f):
+  ;;   C-x C-d → pick a dir. You'll see the NEW path with the OLD one shadowed
+  ;;     (greyed) before it; that's expected — RET uses the new (active) path.
+  ;;     Toggle this with `consult-dir-shadow-filenames' (nil = replace instead).
+  ;;   C-x C-j → jump straight to a file in a recent/project/bookmark directory.
+  ;;   The picker offers (type < to narrow by source): recent dirs (recentf),
+  ;;     project.el roots, bookmarked dirs, or any path you type. Control chords
+  ;;     only — no Meta key, so it never clashes with aerospace.
+  (use-package consult-dir
+    :bind (("C-x C-d" . consult-dir)
+           :map vertico-map
+           ("C-x C-d" . consult-dir)
+           ("C-x C-j" . consult-dir-jump-file)))
 
 #+end_src
 
@@ -2168,6 +2213,10 @@ Built-in project management. Replaces Projectile with Emacs's native =project.el
   (use-package project
     :ensure nil
     :config
+    ;; Recognize a directory as a project even without version control:
+    ;; any folder containing one of these marker files is treated as a root.
+    ;; e.g. `touch .project` in a non-git folder makes it a project.
+    (setq project-vc-extra-root-markers '(".project" ".projectile"))
     (when (file-directory-p "~/Workspace/code")
       (project-remember-projects-under "~/Workspace/code"))
     (setq project-switch-commands #'project-find-file)
