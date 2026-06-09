@@ -761,7 +761,84 @@ cannot redirect a ripgrep search that is already running."
   :config
   ;; Use consult for xref
   (setq xref-show-xrefs-function #'consult-xref
-        xref-show-definitions-function #'consult-xref))
+        xref-show-definitions-function #'consult-xref)
+
+  ;; Show project buffers by their project-RELATIVE PATH (e.g. src/api/index.ts)
+  ;; instead of the bare buffer name (index.ts, index.ts<2>, ...).
+  ;;
+  ;; WHY: `consult-project-buffer' (SPC , / SPC bb) draws from two sources —
+  ;; open buffers and recent files. The recent-file source already shows the
+  ;; relative path, but the buffer source shows just the buffer name, so the
+  ;; list reads inconsistently and you can't fuzzy-match by directory the way
+  ;; `project-find-file' (SPC pf) lets you. Showing the relative path fixes
+  ;; both: consistent labels, and orderless can narrow on any path segment
+  ;; (type a directory name first, just like SPC pf).
+  ;;
+  ;; HOW: consult buffer candidates are (DISPLAY . BUFFER) pairs; the BUFFER is
+  ;; carried as a text property, so only the DISPLAY string matters here —
+  ;; switching and preview keep working untouched. We just relabel file-visiting
+  ;; buffers with their path relative to the project root; non-file buffers
+  ;; (magit, vterm, dired, ...) keep their buffer name.
+  (defun my/consult--project-buffer-items ()
+    "Project buffers labelled by project-relative path for `consult-buffer'."
+    (when-let* ((root (consult--project-root)))
+      (consult--buffer-query
+       :sort 'visibility
+       :directory root
+       :as (lambda (buf)
+             (let ((file (buffer-file-name buf)))
+               (cons (if (and file (string-prefix-p root (expand-file-name file)))
+                         (file-relative-name (expand-file-name file) root)
+                       (buffer-name buf))
+                     buf))))))
+
+  (defvar my/consult-source-project-buffer
+    `( :name     "Project Buffer"
+       :narrow   ?b
+       :category buffer
+       :face     consult-buffer
+       :history  buffer-name-history
+       :state    ,#'consult--buffer-state
+       :enabled  ,(lambda () consult-project-function)
+       :items    ,#'my/consult--project-buffer-items)
+    "Like `consult-source-project-buffer' but labelled by relative path.")
+
+  ;; Same idea for the GLOBAL `consult-buffer' (SPC bB), which lists buffers
+  ;; from everywhere — not just the current project. There a project-relative
+  ;; path is meaningless, so file buffers are labelled by their full path
+  ;; (home shortened to ~/, like `my/yank-buffer-path'); drop
+  ;; `abbreviate-file-name' if you want the literal /Users/... form.
+  (defun my/consult--buffer-items ()
+    "All buffers labelled by absolute file path for `consult-buffer'."
+    (consult--buffer-query
+     :sort 'visibility
+     :as (lambda (buf)
+           (let ((file (buffer-file-name buf)))
+             (cons (if file (abbreviate-file-name file) (buffer-name buf))
+                   buf)))))
+
+  (defvar my/consult-source-buffer
+    `( :name     "Buffer"
+       :narrow   ?b
+       :category buffer
+       :face     consult-buffer
+       :history  buffer-name-history
+       :state    ,#'consult--buffer-state
+       :default  t
+       :items    ,#'my/consult--buffer-items)
+    "Like `consult-source-buffer' but labelled by absolute file path.")
+
+  ;; Swap our sources in by substituting the one symbol in place — this keeps
+  ;; every other stock source (and any the installed consult version adds)
+  ;; untouched, and is a no-op if it has already run.
+  (setq consult-project-buffer-sources
+        (cl-substitute 'my/consult-source-project-buffer
+                       'consult-source-project-buffer
+                       consult-project-buffer-sources)
+        consult-buffer-sources
+        (cl-substitute 'my/consult-source-buffer
+                       'consult-source-buffer
+                       consult-buffer-sources)))
 
 ;; Embark — contextual actions (C-.) and export to grep buffer (C-c C-o)
 (use-package embark
@@ -1421,6 +1498,7 @@ cannot redirect a ripgrep search that is already running."
            js-ts-mode
            go-ts-mode
            rust-ts-mode
+           rustic-mode          ; actual major mode for .rs (derives from rust-ts-mode)
            c-ts-mode
            c++-ts-mode
            bash-ts-mode
@@ -1542,17 +1620,22 @@ cannot redirect a ripgrep search that is already running."
 (use-package rust-mode
   :ensure t
   :init
+  ;; Must be set before rust-mode loads: it decides rust-mode's parent
+  ;; (rust-ts-mode vs prog-mode) at definition time.
   (setq rust-mode-treesitter-derive t))
 
 (use-package rustic
   :ensure t
   :after (rust-mode)
-  :config
-  (setq rustic-format-on-save nil)
   :custom
+  ;; Let apheleia own formatting (see "Format on Save"); keep rustic from
+  ;; also running rustfmt. `rustic-format-trigger' supersedes the obsolete
+  ;; `rustic-format-on-save'; nil means "don't format automatically".
+  (rustic-format-trigger nil)
   (rustic-cargo-use-last-stored-arguments t))
 
-;; Use executable-find for portability across systems
+;; Pin rust-analyzer to its absolute path for portability across systems
+;; (feeds `lsp-rust-analyzer-server-command').
 (when-let ((ra (executable-find "rust-analyzer")))
   (setq rustic-analyzer-command (list ra)))
 
@@ -1630,7 +1713,10 @@ cannot redirect a ripgrep search that is already running."
   (setf (alist-get 'typescript-ts-mode apheleia-mode-alist) 'prettier)
   (setf (alist-get 'tsx-ts-mode apheleia-mode-alist) 'prettier)
   (setf (alist-get 'python-ts-mode apheleia-mode-alist) 'black)
-  (setf (alist-get 'rust-ts-mode apheleia-mode-alist) 'rustfmt))
+  (setf (alist-get 'rust-ts-mode apheleia-mode-alist) 'rustfmt)
+  ;; .rs buffers are `rustic-mode' (derives from rust-ts-mode); map it
+  ;; explicitly so format-on-save doesn't rely on `rust-mode-treesitter-derive'.
+  (setf (alist-get 'rustic-mode apheleia-mode-alist) 'rustfmt))
 
 (use-package project
   :ensure nil
