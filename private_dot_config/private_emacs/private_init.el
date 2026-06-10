@@ -11,10 +11,10 @@
 
 (add-hook 'emacs-startup-hook #'my/display-startup-time)
 
-;; Keep cache file outside the config directory ~/.config/emacs_vanilla
+;; Keep cache file outside the config directory ~/.config/emacs
 ;; Must be set before loading no-littering!
 ;; Can be set on the cli with `--init-directory <path>`
-(setq user-emacs-directory "~/.cache/emacs_vanilla")
+(setq user-emacs-directory "~/.cache/emacs")
 
 ;; Redirect eln-cache into var/
 (when (and (featurep 'native-compile)
@@ -51,6 +51,16 @@
 (require 'help)
 
 (use-package ripgrep :defer t)
+
+(use-package exec-path-from-shell
+  :ensure t
+  ;; Only needed for GUI / daemon sessions, where the shell env isn't inherited.
+  :if (or (memq window-system '(mac ns x)) (daemonp))
+  :config
+  ;; Copy any extra vars you rely on beyond the defaults (PATH, MANPATH), e.g.:
+  ;; (dolist (var '("GOPATH" "LSP_USE_PLISTS"))
+  ;;   (add-to-list 'exec-path-from-shell-variables var))
+  (exec-path-from-shell-initialize))
 
 (use-package gcmh
   :ensure t
@@ -216,7 +226,7 @@
   (defun my/find-file-in-private-config ()
     "Find file in Emacs private config directory."
     (interactive)
-    (let ((default-directory (expand-file-name "~/.config/emacs_vanilla/")))
+    (let ((default-directory (expand-file-name "~/.config/emacs/")))
       (call-interactively #'find-file)))
 
   (defun my/browse-in-emacsd ()
@@ -1342,7 +1352,7 @@ cannot redirect a ripgrep search that is already running."
 (defun my/org-babel-tangle-config ()
   "Tangle the Emacs config file if it's the one being saved."
   (when (string-equal (buffer-file-name)
-                      (expand-file-name "~/.config/emacs_vanilla/emacs.org"))
+                      (expand-file-name "~/.config/emacs/emacs.org"))
     ;; Dynamic scoping to the rescue
     (let ((org-confirm-babel-evaluate nil))
       (org-babel-tangle))))
@@ -1544,10 +1554,12 @@ cannot redirect a ripgrep search that is already running."
   :hook (lsp-mode . lsp-ui-mode)
   :custom
   (lsp-ui-doc-enable t)
-  (lsp-ui-doc-delay 0.1)                         ; show doc quickly
+  (lsp-ui-doc-delay 0)                           ; show doc instantly (no delay)
   (lsp-ui-doc-position 'at-point)
   (lsp-ui-doc-show-with-cursor nil)              ; don't show on cursor movement
-  (lsp-ui-doc-show-with-mouse t)                 ; only show on mouse hover
+  (lsp-ui-doc-show-with-mouse t)                 ; show on mouse hover
+  (lsp-ui-doc-max-width 180)                     ; wider doc popup
+  (lsp-ui-doc-max-height 40)                     ; taller doc popup
   (lsp-ui-sideline-show-hover nil)
   (lsp-ui-sideline-show-code-actions t)
   (lsp-ui-sideline-ignore-duplicate t)
@@ -1659,10 +1671,10 @@ cannot redirect a ripgrep search that is already running."
 (use-package corfu
   :custom
   (corfu-auto t)                                 ; enable auto completion
-  (corfu-auto-delay 0.1)                         ; delay before popup shows
+  (corfu-auto-delay 0.0)                         ; show completion popup instantly
   (corfu-auto-prefix 1)                          ; minimum prefix length for auto completion
   (corfu-cycle t)                                ; enable cycling through candidates
-  (corfu-preselect 'prompt)                      ; don't auto-select first candidate
+  (corfu-preselect 'valid)                       ; auto-select best match so its doc shows as you type
   (corfu-scroll-margin 5)                        ; margin when scrolling
   :bind (:map corfu-map
          ("TAB" . corfu-next)
@@ -1678,7 +1690,10 @@ cannot redirect a ripgrep search that is already running."
   :ensure nil                                    ; built into corfu
   :after corfu
   :custom
-  (corfu-popupinfo-delay '(0.5 . 0.2))           ; delay (initial . after-change)
+  (corfu-popupinfo-delay '(0.0 . 0.0))           ; show doc instantly (initial . after-change)
+  (corfu-popupinfo-hide nil)                      ; keep doc visible while navigating candidates
+  (corfu-popupinfo-max-width 100)                ; wider doc popup
+  (corfu-popupinfo-max-height 25)                ; taller doc popup
   :bind (:map corfu-map
          ("M-d" . corfu-popupinfo-toggle)        ; toggle doc popup
          ("M-p" . corfu-popupinfo-scroll-down)   ; scroll doc up (content moves down)
@@ -1887,6 +1902,6 @@ cannot redirect a ripgrep search that is already running."
     (evil-collection-define-key 'normal 'dired-mode-map
       "H" 'dired-hide-dotfiles-mode))
 
-(let ((local-config (expand-file-name "local.el" "~/.config/emacs_vanilla/")))
+(let ((local-config (expand-file-name "local.el" "~/.config/emacs/")))
   (when (file-exists-p local-config)
     (load local-config nil 'nomessage)))
