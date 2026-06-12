@@ -517,6 +517,7 @@ cannot redirect a ripgrep search that is already running."
       "o"  '(:ignore t                        :which-key "open")
       "ot" '(multi-vterm-dedicated-toggle     :which-key "toggle terminal")
       "oT" '(multi-vterm                      :which-key "new terminal")
+      "ok" '(kubernetes-overview              :which-key "Kubernetes")
       "o-" '(dired-jump                       :which-key "Dired")
 
       ;; Claude Code (AI assistant)
@@ -1792,6 +1793,28 @@ cannot redirect a ripgrep search that is already running."
 ;; Delimiters mode
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode))
+
+(use-package kubernetes
+  :ensure t
+  :commands (kubernetes-overview)
+  :custom
+  (kubernetes-poll-frequency 3600)     ; don't poll kubectl in the background
+  (kubernetes-redraw-frequency 3600))  ; refresh manually with `g'
+
+;; Evil-friendly keybindings for the kubernetes buffers, so the overview's
+;; default keys don't clash with evil normal-state motions.
+(use-package kubernetes-evil
+  :ensure t
+  :after (kubernetes evil))
+
+;; TRAMP method for editing files / opening shells inside pods, e.g.
+;;   C-x C-f /kubectl:<pod>:/path/to/file
+;;   C-x C-f /kubectl:<pod>@<namespace>:/path
+;; Loaded eagerly so the `kubectl' method is registered before the first
+;; /kubectl: access (it wires up its tramp integration via eval-after-load,
+;; so this doesn't force tramp itself to load at startup).
+(use-package kubernetes-tramp
+  :ensure t)
 
 (use-package vterm
   :commands vterm

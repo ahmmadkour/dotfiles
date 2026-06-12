@@ -665,6 +665,7 @@ One note about =general= package, as autoloads fire on functions, and not on var
         "o"  '(:ignore t                        :which-key "open")
         "ot" '(multi-vterm-dedicated-toggle     :which-key "toggle terminal")
         "oT" '(multi-vterm                      :which-key "new terminal")
+        "ok" '(kubernetes-overview              :which-key "Kubernetes")
         "o-" '(dired-jump                       :which-key "Dired")
 
         ;; Claude Code (AI assistant)
@@ -2423,6 +2424,40 @@ Emacs' built in commenting functionality =comment-dwim= (usually bound to =M-;=)
   ;; Delimiters mode
   (use-package rainbow-delimiters
     :hook (prog-mode . rainbow-delimiters-mode))
+
+#+end_src
+
+** Kubernetes
+
+[[https://github.com/kubernetes-el/kubernetes-el][kubernetes.el]] is a magit-style interface to a Kubernetes cluster. =M-x kubernetes-overview= (also bound to =SPC o k=) opens a dashboard of pods, deployments, services, configmaps, etc. that you can navigate and act on — describe, exec, view logs, delete — using familiar magit-like keys.
+
+It shells out to =kubectl=, so make sure =kubectl= is installed and on your =PATH= (imported into GUI/daemon sessions by [[Inherit Shell Environment (PATH)][exec-path-from-shell]]) and that your current context points at the cluster you want.
+
+The poll and redraw frequencies are set high so Emacs isn't running =kubectl= in the background every few seconds; refresh manually with =g= inside the overview buffer.
+
+#+begin_src emacs-lisp
+
+  (use-package kubernetes
+    :ensure t
+    :commands (kubernetes-overview)
+    :custom
+    (kubernetes-poll-frequency 3600)     ; don't poll kubectl in the background
+    (kubernetes-redraw-frequency 3600))  ; refresh manually with `g'
+
+  ;; Evil-friendly keybindings for the kubernetes buffers, so the overview's
+  ;; default keys don't clash with evil normal-state motions.
+  (use-package kubernetes-evil
+    :ensure t
+    :after (kubernetes evil))
+
+  ;; TRAMP method for editing files / opening shells inside pods, e.g.
+  ;;   C-x C-f /kubectl:<pod>:/path/to/file
+  ;;   C-x C-f /kubectl:<pod>@<namespace>:/path
+  ;; Loaded eagerly so the `kubectl' method is registered before the first
+  ;; /kubectl: access (it wires up its tramp integration via eval-after-load,
+  ;; so this doesn't force tramp itself to load at startup).
+  (use-package kubernetes-tramp
+    :ensure t)
 
 #+end_src
 
