@@ -294,7 +294,8 @@ cannot redirect a ripgrep search that is already running."
   "Prompt for a directory and discover projects under it."
   (interactive)
   (let ((dir (read-directory-name "Discover projects under: " "~/Workspace/code")))
-    (project-remember-projects-under dir)
+    ;; Pass RECURSIVE (t) so subdirectories are scanned, not just DIR's top level.
+    (project-remember-projects-under dir t)
     (message "Discovered projects under: %s" dir)))
 
 (defun my/project-recentf ()
@@ -1741,7 +1742,8 @@ cannot redirect a ripgrep search that is already running."
   ;; e.g. `touch .project` in a non-git folder makes it a project.
   (setq project-vc-extra-root-markers '(".project" ".projectile"))
   (when (file-directory-p "~/Workspace/code")
-    (project-remember-projects-under "~/Workspace/code"))
+    ;; RECURSIVE (t): scan subdirectories so nested repos are auto-discovered.
+    (project-remember-projects-under "~/Workspace/code" t))
   (setq project-switch-commands #'project-find-file)
   (global-set-key (kbd "C-c p") project-prefix-map))
 
