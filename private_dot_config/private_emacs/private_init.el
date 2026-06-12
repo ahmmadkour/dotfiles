@@ -1742,9 +1742,11 @@ cannot redirect a ripgrep search that is already running."
   ;; any folder containing one of these marker files is treated as a root.
   ;; e.g. `touch .project` in a non-git folder makes it a project.
   (setq project-vc-extra-root-markers '(".project" ".projectile"))
-  (when (file-directory-p "~/Workspace/code")
-    ;; RECURSIVE (t): scan subdirectories so nested repos are auto-discovered.
-    (project-remember-projects-under "~/Workspace/code" t))
+  ;; No project discovery at startup: `project-remember-projects-under' walks
+  ;; the directory tree synchronously and freezes startup on large/deep trees.
+  ;; The project list is persisted in `project-list-file', so already-known
+  ;; projects survive restarts without re-scanning. To (re)scan for nested
+  ;; repos on demand, run `my/discover-projects' (leader "pD").
   (setq project-switch-commands #'project-find-file)
   (global-set-key (kbd "C-c p") project-prefix-map))
 
