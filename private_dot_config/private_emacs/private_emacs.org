@@ -2452,14 +2452,14 @@ The poll and redraw frequencies are set high so Emacs isn't running =kubectl= in
     :ensure t
     :after (kubernetes evil))
 
-  ;; TRAMP method for editing files / opening shells inside pods, e.g.
-  ;;   C-x C-f /kubectl:<pod>:/path/to/file
-  ;;   C-x C-f /kubectl:<pod>@<namespace>:/path
-  ;; Loaded eagerly so the `kubectl' method is registered before the first
-  ;; /kubectl: access (it wires up its tramp integration via eval-after-load,
-  ;; so this doesn't force tramp itself to load at startup).
-  (use-package kubernetes-tramp
-    :ensure t)
+  ;; TRAMP access to pods uses Emacs' built-in `tramp-container' (the
+  ;; `kubernetes' method), which obsoletes the old `kubernetes-tramp' package.
+  ;; The method is auto-registered when tramp first loads, so no config is
+  ;; needed here -- just open files / shells inside a pod, e.g.
+  ;;   C-x C-f /kubernetes:<pod>:/path/to/file
+  ;;   C-x C-f /kubernetes:<container>.<pod>:/path
+  ;; Target namespace/context come from `tramp-kubernetes-namespace' (default
+  ;; "default") and `tramp-kubernetes-context' (default: current kubectl context).
 
 #+end_src
 
