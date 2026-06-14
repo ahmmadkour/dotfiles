@@ -1493,6 +1493,13 @@ cannot redirect a ripgrep search that is already running."
   (lsp-idle-delay 0.2)
   (lsp-eldoc-enable-hover nil)
   (lsp-signature-auto-activate nil)
+  ;; Inlay hints: show inferred types beside the code (e.g. rust-analyzer's
+  ;; `let x: i32'). This master toggle both registers the inlayHint client
+  ;; capability and is what gates rust-analyzer's `typeHints'. With it non-nil
+  ;; lsp-mode auto-enables `lsp-inlay-hints-mode' for any server that supports
+  ;; textDocument/inlayHint. Per-language type hints (TS, Go) are enabled in
+  ;; their own sections below.
+  (lsp-inlay-hint-enable t)
   ;; Performance tuning
   (lsp-log-io nil)                          ; disable IO logging for better performance
   (lsp-enable-file-watchers nil)            ; disable file watchers (can be slow on large projects)
@@ -1522,12 +1529,9 @@ cannot redirect a ripgrep search that is already running."
          ;; if you want which-key integration
          (lsp-mode . lsp-enable-which-key-integration))
   :config
-  (defun my/lsp-enable-inlay-hints ()
-    "Enable inlay hints only when the server supports them."
-    (when (and (fboundp 'lsp-inlay-hints-mode)
-               (lsp-feature? "textDocument/inlayHint"))
-      (lsp-inlay-hints-mode 1)))
-  (add-hook 'lsp-after-initialize-hook #'my/lsp-enable-inlay-hints)
+  ;; `lsp-inlay-hints-mode' is auto-enabled by lsp-mode for every server that
+  ;; advertises textDocument/inlayHint, because `lsp-inlay-hint-enable' (above)
+  ;; is non-nil -- no manual hook needed.
   ;; Ignore common large directories if file watchers are enabled.
   ;; If files change in these dirs (e.g. npm install), run M-x lsp-workspace-restart
   (dolist (dir '("[/\\\\]\\.venv\\'"
@@ -1592,6 +1596,11 @@ cannot redirect a ripgrep search that is already running."
               ("M-n" . flycheck-next-error) ; optional but recommended error navigation
               ("M-p" . flycheck-previous-error)))
 
+(setq lsp-javascript-display-variable-type-hints t)
+;; (setq lsp-javascript-display-parameter-name-hints "all")   ; "none" | "literals" | "all"
+;; (setq lsp-javascript-display-return-type-hints t)
+;; (setq lsp-javascript-display-property-declaration-type-hints t)
+
 (use-package lsp-pyright
   :ensure t
   :init
@@ -1623,7 +1632,12 @@ cannot redirect a ripgrep search that is already running."
 (with-eval-after-load 'lsp-mode
   (lsp-register-custom-settings
    '(("gopls.completeUnimported" t t)
-     ("gopls.staticcheck" t t))))
+     ("gopls.staticcheck" t t)
+     ;; Inlay hints: show inferred variable types (rendering is enabled by
+     ;; `lsp-inlay-hint-enable' in the lsp-mode block). `assignVariableTypes'
+     ;; covers `x := f()'; `rangeVariableTypes' covers `for i, v := range ...'.
+     ("gopls.hints.assignVariableTypes" t t)
+     ("gopls.hints.rangeVariableTypes" t t))))
 
 (defun lsp-go-install-save-hooks ()
   "Format buffer and organize imports via gopls before saving."
@@ -1652,6 +1666,13 @@ cannot redirect a ripgrep search that is already running."
 ;; (feeds `lsp-rust-analyzer-server-command').
 (when-let ((ra (executable-find "rust-analyzer")))
   (setq rustic-analyzer-command (list ra)))
+
+;; Inlay hints: variable type annotations (rust-analyzer `typeHints', e.g.
+;; `let x: i32') are already on via `lsp-inlay-hint-enable' in the lsp-mode
+;; block. Uncomment to also show parameter names at call sites and inferred
+;; types along method chains:
+;; (setq lsp-rust-analyzer-display-parameter-hints t)
+;; (setq lsp-rust-analyzer-display-chaining-hints t)
 
 (use-package markdown-mode
   :ensure t
