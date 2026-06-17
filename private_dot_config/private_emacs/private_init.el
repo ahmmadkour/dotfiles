@@ -1913,6 +1913,12 @@ cannot redirect a ripgrep search that is already running."
     :ensure nil
     :init
     (setq dired-kill-when-opening-new-dired-buffer t)
+    ;; macOS ships BSD ls, which rejects GNU switches like
+    ;; --group-directories-first and --dired. Use GNU coreutils' gls
+    ;; (brew install coreutils) so dired-listing-switches work.
+    (when-let ((gls (executable-find "gls")))
+      (setq insert-directory-program gls
+            dired-use-ls-dired t))
     :commands (dired dired-jump)
     :bind (("C-x C-j" . dired-jump))
     :custom ((dired-listing-switches "-agho --group-directories-first"))
