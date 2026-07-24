@@ -1,7 +1,7 @@
 alias vim="nvim"
 alias vimdiff="vim -d"
 
-alias ls='ls --color=auto'
+alias ls='ls --color'
 alias la='ls -alh'
 
 alias cp='cp -iv'
