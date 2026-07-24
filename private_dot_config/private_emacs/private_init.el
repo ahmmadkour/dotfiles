@@ -118,6 +118,7 @@
                 term-mode-hook
                 shell-mode-hook
                 vterm-mode-hook
+                ghostel-mode-hook
                 eshell-mode-hook))
   (add-hook mode (lambda () (display-line-numbers-mode 0))))
 
@@ -474,7 +475,12 @@ cannot redirect a ripgrep search that is already running."
       "pp" '(project-switch-project                     :which-key "Switch project")
       "pr" '(my/project-recentf                         :which-key "Find recent project files")
       "ps" '(my/project-save-buffers                    :which-key "Save project files")
-      "pt" '(multi-vterm-project                        :which-key "project terminal")
+      "pv"  '(:ignore t                                 :which-key "terminal")
+      "pvt" '(ghostel-project                           :which-key "project terminal")
+      "pvT" '(my/ghostel-project-new                    :which-key "new project terminal")
+      "pv," '(ghostel-project-list-buffers              :which-key "list project terminals")
+      "pv]" '(ghostel-project-next                      :which-key "next project terminal")
+      "pv[" '(ghostel-project-previous                  :which-key "prev project terminal")
 
       ;;; <leader> q --- quit/session
       "q"  '(:ignore t                     :which-key "quit/session")
@@ -491,10 +497,11 @@ cannot redirect a ripgrep search that is already running."
       ;; TODO "qr" '(doom/restart-and-restore      :which-key "Restart & restore Emacs")
       ;; TODO "qR" '(doom/restart)                 :which-key "Restart Emacs")
 
-      ;; vterm
-      "v"  '(:ignore t                        :which-key "vterm")
-      "v]" '(multi-vterm-next                 :which-key "next terminal")
-      "v[" '(multi-vterm-prev                 :which-key "prev terminal")
+      ;; ghostel
+      "v"  '(:ignore t                        :which-key "terminal")
+      "v," '(ghostel-list-buffers             :which-key "list terminals")
+      "v]" '(ghostel-next                     :which-key "next terminal")
+      "v[" '(ghostel-previous                 :which-key "prev terminal")
 
       "g"  '(:ignore t           :which-key "git")
       "gg" '(magit-status        :which-key "Magit status")
@@ -515,8 +522,8 @@ cannot redirect a ripgrep search that is already running."
       "gu" '(magit-unstage-file  :which-key "Unstage file")
 
       "o"  '(:ignore t                        :which-key "open")
-      "ot" '(multi-vterm-dedicated-toggle     :which-key "toggle terminal")
-      "oT" '(multi-vterm                      :which-key "new terminal")
+      "ot" '(ghostel                          :which-key "toggle terminal")
+      "oT" '(my/ghostel-new                   :which-key "new terminal")
       "ok" '(kubernetes-overview              :which-key "Kubernetes")
       "o-" '(dired-jump                       :which-key "Dired")
 
@@ -1870,6 +1877,32 @@ cannot redirect a ripgrep search that is already running."
 
 (use-package eat
   :ensure t)
+
+(use-package ghostel
+  :ensure t
+  :commands (ghostel ghostel-project ghostel-next ghostel-previous
+             ghostel-list-buffers ghostel-project-list-buffers
+             ghostel-project-next ghostel-project-previous)
+  :config
+  ;; Offer Ghostel from the project switcher (C-x p p)
+  (add-to-list 'project-switch-commands '(ghostel-project "Ghostel") t))
+
+;; `ghostel' is autoloaded, so calling it here loads the package on demand.
+(defun my/ghostel-new ()
+  "Create a new Ghostel terminal buffer."
+  (interactive)
+  (ghostel '(4)))
+
+(defun my/ghostel-project-new ()
+  "Create a new Ghostel terminal buffer in the current project's root."
+  (interactive)
+  (ghostel-project '(4)))
+
+;; Evil integration: start terminals in insert state, ESC to normal, etc.
+(use-package evil-ghostel
+  :ensure t
+  :after (ghostel evil)
+  :hook (ghostel-mode . evil-ghostel-mode))
 
 (use-package claude-code
   :vc (:url "https://github.com/stevemolitor/claude-code.el" :rev :newest)
