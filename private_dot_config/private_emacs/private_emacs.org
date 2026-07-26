@@ -58,6 +58,40 @@ Emacs has a built in package manager but it doesn’t make it easy to automatica
   (global-auto-revert-mode 1)
   (unless (daemonp) (server-start))
 
+  ;; Emacs.app started from Finder/Dock/Spotlight only gets launchd's bare
+  ;; PATH, which has no Homebrew bin dir. package.el needs gpg right here, to
+  ;; import the GNU ELPA keyring during `package-refresh-contents'. If gpg
+  ;; isn't on the path that import fails silently, leaving no keyring, and
+  ;; every signed GNU ELPA package (compat, no-littering, ...) then fails to
+  ;; install. exec-path-from-shell below fixes the whole environment, but it
+  ;; runs too late to help here.
+  (dolist (dir '("/opt/homebrew/bin" "/usr/local/bin"))
+    (when (file-directory-p dir)
+      (add-to-list 'exec-path dir)
+      (setenv "PATH" (concat dir path-separator (getenv "PATH")))))
+
+  ;; libgccjit links every .eln against GCC's support libraries (libemutls_w.a
+  ;; and friends). Homebrew keeps those outside the linker's default search
+  ;; path, so without LIBRARY_PATH native compilation dies with
+  ;; "ld: library 'emutls_w' not found".
+  (when (and (eq system-type 'darwin)
+             (fboundp 'native-comp-available-p)
+             (native-comp-available-p))
+    (let* ((prefix (if (file-directory-p "/opt/homebrew") "/opt/homebrew" "/usr/local"))
+           (dirs (seq-filter
+                  #'file-directory-p
+                  (append (list (concat prefix "/lib/gcc/current")
+                                (concat prefix "/opt/libgccjit/lib/gcc/current"))
+                          ;; e.g. .../lib/gcc/current/gcc/aarch64-apple-darwin25/15
+                          (file-expand-wildcards
+                           (concat prefix "/lib/gcc/current/gcc/*/*"))))))
+      (when dirs
+        (setenv "LIBRARY_PATH"
+                (mapconcat #'identity
+                           (append dirs (let ((old (getenv "LIBRARY_PATH")))
+                                          (and old (list old))))
+                           path-separator)))))
+
   ;; Initialize package sources
   (require 'package)
 
@@ -78,6 +112,10 @@ Emacs has a built in package manager but it doesn’t make it easy to automatica
   (setq use-package-always-ensure t)
   ;(setq use-package-always-defer t)
   ;(setq use-package-verbose t)
+
+  ;; Keeps the GNU ELPA signing keys current, so package installs don't break
+  ;; the next time upstream rotates them.
+  (use-package gnu-elpa-keyring-update)
 
   ;; Needed for the general package
   (require 'help)
