@@ -569,27 +569,31 @@ cannot redirect a ripgrep search that is already running."
       "ok" '(kubernetes-overview              :which-key "Kubernetes")
       "o-" '(dired-jump                       :which-key "Dired")
 
-      ;; Claude Code (AI assistant)
+      ;; agent-shell (AI assistant)
       "a"  '(:ignore t                        :which-key "AI")
-      "aa" '(claude-code                      :which-key "Start Claude")
-      "ac" '(claude-code-continue             :which-key "Continue conversation")
-      "ar" '(claude-code-send-region          :which-key "Send region to Claude")
-      "as" '(claude-code-send-command         :which-key "Send command")
-      "ab" '(claude-code-switch-to-buffer     :which-key "Switch to Claude buffer")
-      "at" '(claude-code-toggle               :which-key "Toggle Claude window")
-      "ae" '(claude-code-fix-error-at-point   :which-key "Fix error at point")
-      "ay" '(claude-code-send-return          :which-key "Send Yes/Return")
-      "an" '(claude-code-send-escape          :which-key "Send No/Escape")
-      "a/" '(claude-code-slash-commands       :which-key "Slash commands menu")
-      "am" '(claude-code-transient            :which-key "Claude menu")
-      "ax" '(claude-code-send-command-with-context :which-key "Send with context")
-      "ao" '(claude-code-send-buffer-file          :which-key "Send buffer file")
-      "af" '(claude-code-fork                      :which-key "Fork conversation")
-      "aR" '(claude-code-resume                    :which-key "Resume session")
-      "ak" '(claude-code-kill                      :which-key "Kill Claude")
-      "aM" '(claude-code-cycle-mode                :which-key "Cycle mode")
-      "az" '(claude-code-toggle-read-only-mode     :which-key "Toggle read-only")
-      "ai" '(claude-code-new-instance              :which-key "New instance")
+      "aa" '(agent-shell                      :which-key "Agent (DWIM)")
+      "ac" '(agent-shell-anthropic-start-claude-code :which-key "New Claude shell")
+      "an" '(agent-shell-new-shell            :which-key "New shell (pick agent)")
+      "at" '(agent-shell-toggle               :which-key "Toggle window")
+      "ab" '(agent-shell-switch-buffer        :which-key "Switch shell buffer")
+      "ap" '(agent-shell-prompt-compose       :which-key "Compose prompt")
+      "ai" '(agent-shell-interrupt            :which-key "Interrupt")
+      "af" '(agent-shell-fork                 :which-key "Fork session")
+      "ar" '(agent-shell-resume-session       :which-key "Resume session")
+
+      "as"  '(:ignore t                       :which-key "send")
+      "asr" '(agent-shell-send-region                 :which-key "Region")
+      "asf" '(agent-shell-send-file                   :which-key "This file")
+      "asF" '(agent-shell-send-other-file             :which-key "Other file...")
+      "ass" '(agent-shell-send-screenshot             :which-key "Screenshot")
+      "asy" '(agent-shell-send-clipboard-image        :which-key "Clipboard image")
+      "aso" '(agent-shell-insert-shell-command-output :which-key "Shell command output")
+
+      "am"  '(:ignore t                       :which-key "session")
+      "amm" '(agent-shell-set-session-model         :which-key "Model")
+      "amo" '(agent-shell-set-session-mode          :which-key "Mode")
+      "amc" '(agent-shell-cycle-session-mode        :which-key "Cycle mode")
+      "amt" '(agent-shell-set-session-thought-level :which-key "Thought level")
 
       "u"  '(vundo                            :which-key "undo tree")
       "w" '(:keymap evil-window-map :which-key "windows")))
@@ -2016,29 +2020,24 @@ Falls back to every buffer when point is not inside a project."
   :after (ghostel evil)
   :hook (ghostel-mode . evil-ghostel-mode))
 
-(use-package claude-code
-  :vc (:url "https://github.com/stevemolitor/claude-code.el" :rev :newest)
-  :after eat
-  :config
-  (setq claude-code-use-vterm t)
-  (setq claude-code-no-delete-other-windows t)
-  (setq claude-code-toggle-auto-select t)
-  (setq claude-code-notification-function
-        (lambda (title message)
-          (call-process "osascript" nil nil nil
-                        "-e" (format "display notification \"%s\" with title \"%s\" sound name \"Glass\""
-                                     message title))))
-  (add-hook 'claude-code-start-hook
-            (lambda ()
-              (setq-local cursor-type nil)
-              (setq-local cursor-in-non-selected-windows nil)
-              (setq-local blink-cursor-mode nil)
-              (display-line-numbers-mode 0)))
-  (claude-code-mode 1))
-
 (use-package agent-shell
   :ensure t
-  :commands (agent-shell agent-shell-anthropic-start-claude-code)
+  ;; Commands bound under the SPC a leader that lack their own autoload
+  ;; cookie need a stub here, or the binding hits a void function.
+  :commands (agent-shell
+             agent-shell-anthropic-start-claude-code
+             agent-shell-switch-buffer
+             agent-shell-interrupt
+             agent-shell-send-region
+             agent-shell-send-file
+             agent-shell-send-other-file
+             agent-shell-send-screenshot
+             agent-shell-send-clipboard-image
+             agent-shell-insert-shell-command-output
+             agent-shell-set-session-model
+             agent-shell-set-session-mode
+             agent-shell-cycle-session-mode
+             agent-shell-set-session-thought-level)
   :config
   ;; Reuse your existing Claude Code subscription/login.
   (setq agent-shell-anthropic-authentication
