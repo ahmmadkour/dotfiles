@@ -122,6 +122,10 @@
 
 (use-package no-littering)
 
+(setq custom-file (no-littering-expand-etc-file-name "custom.el"))
+(when (file-exists-p custom-file)
+  (load custom-file nil 'nomessage))
+
 (setq backup-directory-alist `(("." . ,(no-littering-expand-var-file-name "backup/")))
       auto-save-file-name-transforms `((".*" ,(no-littering-expand-var-file-name "auto-save/") t))
       backup-by-copying t                 ; avoid hardlink issues
@@ -1424,9 +1428,79 @@ cannot redirect a ripgrep search that is already running."
   :config
   (org-roam-setup))
 
+(require 'project)
+
+(defvar my/project-buffer-skip-regexp
+  (rx bos "*" (or "Messages" "Warnings" "scratch" "Backtrace"
+                  "Compile-Log" "Async-native-compile-log"
+                  "Native-compile-Log" "Flymake log"))
+  "Buffer names matching this are skipped when cycling project buffers.
+Most noise buffers never show up anyway — they only qualify as project
+buffers if their `default-directory' happens to sit under the project
+root — but the ones that do are never worth cycling through.")
+
+(defvar my/project-buffer-ring nil
+  "Snapshot of the buffer list for the cycling run in progress.")
+
+(defvar my/project-buffer-index 0
+  "Position within `my/project-buffer-ring'.")
+
+(defun my/project-buffers-mru ()
+  "Buffers of the current project, MRU first, noise filtered out.
+Falls back to every buffer when point is not inside a project."
+  (let* ((pr (project-current nil))
+         ;; Both sources are already in MRU order: `project-buffers' walks
+         ;; `buffer-list' and preserves its ordering.
+         (bufs (if pr (project-buffers pr) (buffer-list))))
+    (seq-filter (lambda (buf)
+                  (let ((name (buffer-name buf)))
+                    (and name
+                         (not (string-prefix-p " " name)) ; internal buffers
+                         (not (string-match-p my/project-buffer-skip-regexp
+                                              name)))))
+                bufs)))
+
+(defun my/cycle-project-buffer (step)
+  "Move STEP places through the project's MRU buffer list."
+  ;; Re-snapshot unless a run is already in progress. The ring check matters:
+  ;; a run that started with nothing to cycle would otherwise keep reusing
+  ;; that empty ring for as long as you hold the keys.
+  (unless (and my/project-buffer-ring
+               (memq last-command '(my/next-project-buffer
+                                    my/previous-project-buffer)))
+    (setq my/project-buffer-ring (my/project-buffers-mru)))
+  ;; A buffer killed mid-run would shift every index after it.
+  (let* ((ring (seq-filter #'buffer-live-p my/project-buffer-ring))
+         (len (length ring)))
+    (if (< len 2)
+        (message "No other buffer in this project")
+      ;; Start from where we are. If the current buffer was filtered out of
+      ;; the ring, start just behind element 0 so this press lands on it.
+      (let ((from (or (seq-position ring (current-buffer))
+                      (mod (- step) len))))
+        (setq my/project-buffer-ring ring
+              my/project-buffer-index (mod (+ from step) len))
+        (switch-to-buffer (nth my/project-buffer-index ring) nil t)))))
+
+(defun my/next-project-buffer ()
+  "Switch to the next buffer in the current project."
+  (interactive)
+  (my/cycle-project-buffer 1))
+
+(defun my/previous-project-buffer ()
+  "Switch to the previous buffer in the current project."
+  (interactive)
+  (my/cycle-project-buffer -1))
+
 (general-define-key
- "s-{"     'previous-buffer
- "s-}"     'next-buffer)
+ ;; cmd+ctrl+[ / ] — cycle buffers within the current project.
+ ;; NOTE: Emacs folds C-[ into ESC, so cmd+ctrl+[ arrives as `s-ESC', not
+ ;; `C-s-['. The chord works as expected; `C-h k' just reports the odd name.
+ "s-ESC"   'my/previous-project-buffer
+ "C-s-]"   'my/next-project-buffer
+ ;; cmd+shift+ctrl+[ / ] — cycle all buffers, project or not.
+ "C-s-{"   'previous-buffer
+ "C-s-}"   'next-buffer)
 
 (with-eval-after-load 'tramp
   (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
