@@ -1497,11 +1497,9 @@ Falls back to every buffer when point is not inside a project."
   (my/cycle-project-buffer -1))
 
 (general-define-key
- ;; cmd+ctrl+[ / ] — cycle buffers within the current project.
- ;; NOTE: Emacs folds C-[ into ESC, so cmd+ctrl+[ arrives as `s-ESC', not
- ;; `C-s-['. The chord works as expected; `C-h k' just reports the odd name.
- "s-ESC"   'my/previous-project-buffer
- "C-s-]"   'my/next-project-buffer
+ ;; cmd+shift+[ / ] — cycle buffers within the current project.
+ "s-{"     'my/previous-project-buffer
+ "s-}"     'my/next-project-buffer
  ;; cmd+shift+ctrl+[ / ] — cycle all buffers, project or not.
  "C-s-{"   'previous-buffer
  "C-s-}"   'next-buffer)
