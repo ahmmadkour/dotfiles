@@ -375,10 +375,11 @@ cannot redirect a ripgrep search that is already running."
     (general-create-definer my/leader-keys
       :keymaps '(normal insert visual emacs)
       :prefix "SPC"
-      :global-prefix "C-SPC")
+      :global-prefix "M-SPC")
 
     (my/leader-keys
       "h"  '(:keymap help-map   :which-key "help")
+      "h K" '(general-describe-keybindings :which-key "Show configured keybindings")
 
       "/" '(my/search-project :which-key "Search project")
 
@@ -534,12 +535,6 @@ cannot redirect a ripgrep search that is already running."
       ;; TODO "qr" '(doom/restart-and-restore      :which-key "Restart & restore Emacs")
       ;; TODO "qR" '(doom/restart)                 :which-key "Restart Emacs")
 
-      ;; ghostel
-      "v"  '(:ignore t                        :which-key "terminal")
-      "v," '(ghostel-list-buffers             :which-key "list terminals")
-      "v]" '(ghostel-next                     :which-key "next terminal")
-      "v[" '(ghostel-previous                 :which-key "prev terminal")
-
       "g"  '(:ignore t           :which-key "git")
       "gg" '(magit-status        :which-key "Magit status")
       "gG" '(magit-dispatch      :which-key "Magit dispatch")
@@ -561,6 +556,9 @@ cannot redirect a ripgrep search that is already running."
       "o"  '(:ignore t                        :which-key "open")
       "ot" '(ghostel                          :which-key "toggle terminal")
       "oT" '(my/ghostel-new                   :which-key "new terminal")
+      "ob" '(ghostel-list-buffers             :which-key "list terminals")
+      "on" '(ghostel-next                     :which-key "next terminal")
+      "op" '(ghostel-previous                 :which-key "previous terminal")
       "ok" '(kubernetes-overview              :which-key "Kubernetes")
       "o-" '(dired-jump                       :which-key "Dired")
 
@@ -2033,6 +2031,10 @@ Falls back to every buffer when point is not inside a project."
   ;; Reuse your existing Claude Code subscription/login.
   (setq agent-shell-anthropic-authentication
         (agent-shell-anthropic-make-authentication :login t))
+  ;; Show the session cost in the header.
+  (setopt agent-shell-show-cost-indicator t)
+  ;; Don't keep a writable prompt at the buffer end during the agent's turn.
+  (setopt agent-shell-persistent-prompt-enabled nil)
   ;; No line numbers in the agent-shell buffer.
   (add-hook 'agent-shell-mode-hook
             (lambda () (display-line-numbers-mode 0))))

@@ -2764,6 +2764,10 @@ npm install -g @agentclientprotocol/claude-agent-acp
     ;; Reuse your existing Claude Code subscription/login.
     (setq agent-shell-anthropic-authentication
           (agent-shell-anthropic-make-authentication :login t))
+    ;; Show the session cost in the header.
+    (setopt agent-shell-show-cost-indicator t)
+    ;; Don't keep a writable prompt at the buffer end during the agent's turn.
+    (setopt agent-shell-persistent-prompt-enabled nil)
     ;; No line numbers in the agent-shell buffer.
     (add-hook 'agent-shell-mode-hook
               (lambda () (display-line-numbers-mode 0))))
