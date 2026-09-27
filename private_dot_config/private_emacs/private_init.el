@@ -413,21 +413,17 @@ cannot redirect a ripgrep search that is already running."
 
       "b"  '(:ignore t           :which-key "buffer")
       ;; TODO "b-" '(doom/toggle-narrow-buffer          :which-key "Toggle narrowing")
-      "b[" '(previous-buffer                    :which-key "Previous buffer")
-      "b]" '(next-buffer                        :which-key "Next buffer")
       ;; TODO (:when (modulep! :ui workspaces)
       ;; TODO "bb" '(persp-switch-to-buffer               :which-key "Switch workspace buffer")
       ;; TODO "bB" '(switch-to-buffer                     :which-key "Switch buffer")
       ;; TODO "bI" '(+ibuffer/open-for-current-workspace :which-key "ibuffer workspace")
       ;; TODO (:unless (modulep! :ui workspaces)
       ;; TODO "bb" '(switch-to-buffer :which-key "Switch buffer")
-      "bb" '(consult-project-buffer              :which-key "Switch project buffer")
-      "bB" '(consult-buffer                      :which-key "Switch buffer")
+      "bb" '(consult-buffer                      :which-key "Switch buffer")
       "bc" '(clone-indirect-buffer              :which-key "Clone buffer")
       "bC" '(clone-indirect-buffer-other-window :which-key "Clone buffer other window")
       "bd" '(kill-current-buffer                :which-key "Kill buffer")
       "bi" '(ibuffer                            :which-key "ibuffer")
-      "bk" '(kill-current-buffer                :which-key "Kill buffer")
       ;;"bK" TODO '(doom/kill-all-buffers              :which-key "Kill all buffers")
       "bl" '(evil-switch-to-windows-last-buffer :which-key "Switch to last buffer")
       "bm" '(bookmark-set                       :which-key "Set bookmark")
@@ -438,7 +434,6 @@ cannot redirect a ripgrep search that is already running."
       "bp" '(previous-buffer                    :which-key "Previous buffer")
       "br" '(revert-buffer                      :which-key "Revert buffer")
       "bR" '(rename-buffer                      :which-key "Rename buffer")
-      "bs" '(basic-save-buffer                  :which-key "Save buffer")
       "bS" '(evil-write-all                     :which-key "Save all buffers")
       ;;"bu" TODO '(doom/sudo-save-buffer            :which-key "Save buffer as root")
       ;;"bx" TODO '(doom/open-scratch-buffer         :which-key "Pop up scratch buffer")
@@ -694,7 +689,6 @@ cannot redirect a ripgrep search that is already running."
 (my/leader-keys
   "s"  '(:ignore t :which-key "search")
   "ss" '(consult-line :which-key "search buffer")
-  "sp" '(my/search-project :which-key "search project")
   "sd" '(my/search-current-dir :which-key "search current dir")
   "sD" '(my/search-dir :which-key "search in chosen dir")
   "si" '(consult-imenu :which-key "jump to symbol")
@@ -967,11 +961,6 @@ cannot redirect a ripgrep search that is already running."
   ([remap describe-command] . helpful-command)
   ([remap describe-variable] . helpful-variable)
   ([remap describe-key] . helpful-key))
-
-(with-eval-after-load 'helpful
-  (general-define-key
-   :states '(normal visual)
-   "K" #'helpful-at-point))
 
 (use-package hydra
   :defer t)
@@ -1672,10 +1661,13 @@ Falls back to every buffer when point is not inside a project."
     (let ((win (get-buffer-window "*lsp-help*" 0)))
       (when (window-live-p win)
         (select-window win))))
-(general-define-key
- :states '(normal visual)
- :keymaps 'lsp-mode-map
- "K" #'my/lsp-describe-thing-at-point-focus))
+  (general-define-key
+   :states 'normal
+   :keymaps 'lsp-mode-map
+   "g d" #'lsp-find-definition
+   "g r" #'lsp-find-references
+   "g i" #'lsp-find-implementation
+   "g K" #'my/lsp-describe-thing-at-point-focus))
 
 (use-package lsp-ui
   :hook (lsp-mode . lsp-ui-mode)
@@ -1703,7 +1695,7 @@ Falls back to every buffer when point is not inside a project."
     (run-with-idle-timer 0.5 nil #'lsp-ui-doc-focus-frame))
   (define-key lsp-ui-doc-frame-mode-map [escape] #'lsp-ui-doc-unfocus-frame)
   (general-define-key
-   :states '(normal visual)
+   :states 'normal
    :keymaps 'lsp-mode-map
    "K" #'my/lsp-doc-focus))
 
@@ -1825,6 +1817,7 @@ Falls back to every buffer when point is not inside a project."
          ([tab] . corfu-next)
          ("S-TAB" . corfu-previous)
          ([backtab] . corfu-previous)
+         ("C-g" . corfu-quit)
          ("RET" . corfu-complete))
   :init
   (global-corfu-mode))
