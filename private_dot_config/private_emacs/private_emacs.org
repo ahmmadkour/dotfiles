@@ -2625,6 +2625,41 @@ The poll and redraw frequencies are set high so Emacs isn't running =kubectl= in
 
 #+end_src
 
+*** k9s
+
+=M-x my/k9s= runs [[https://k9scli.io/][k9s]] in a [[ghostel]] terminal.  It asks for a kubectl context and runs =k9s --context <name>=; leave the prompt empty to run plain =k9s= on the current context.
+
+The buffer starts in evil's emacs state, so every key (including =ESC=) goes straight to k9s, the same as running it in Ghostty.  Press =C-z= to switch to normal state if you want to scroll or copy, and =C-z= again to go back.  The Emacs cursor is hidden because k9s shows its own selection highlight.
+
+#+begin_src emacs-lisp
+
+  (defun my/k9s ()
+    "Run k9s in a Ghostel terminal, prompting for a kubectl context.
+  Leave the prompt empty to run plain `k9s' on the current context."
+    (interactive)
+    (let* ((contexts (ignore-errors
+                       (process-lines "kubectl" "config" "get-contexts" "-o" "name")))
+           (context (completing-read "k8s context (empty for current): " contexts))
+           (args (unless (string-empty-p context) (list "--context" context)))
+           (buf (generate-new-buffer
+                 (if args (format "*k9s: %s*" context) "*k9s*"))))
+      (require 'ghostel)
+      (switch-to-buffer buf)
+      (ghostel-exec buf "k9s" args)
+      ;; `ghostel-exec' turns on `ghostel-mode', which resets buffer-local
+      ;; variables, so these have to be set after it.
+      (with-current-buffer buf
+        ;; Hide the cursor: stop k9s from changing it, and make evil's
+        ;; emacs-state cursor "no cursor" (evil treats a plain nil as "leave it").
+        (setq-local ghostel-ignore-cursor-change t
+                    evil-emacs-state-cursor '(nil)
+                    cursor-in-non-selected-windows nil
+                    cursor-type nil)
+        (when (bound-and-true-p evil-local-mode)
+          (evil-emacs-state)))))
+
+#+end_src
+
 * Terminals
 ** vterm
 

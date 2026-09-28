@@ -1951,6 +1951,31 @@ Falls back to every buffer when point is not inside a project."
 ;; Target namespace/context come from `tramp-kubernetes-namespace' (default
 ;; "default") and `tramp-kubernetes-context' (default: current kubectl context).
 
+(defun my/k9s ()
+  "Run k9s in a Ghostel terminal, prompting for a kubectl context.
+Leave the prompt empty to run plain `k9s' on the current context."
+  (interactive)
+  (let* ((contexts (ignore-errors
+                     (process-lines "kubectl" "config" "get-contexts" "-o" "name")))
+         (context (completing-read "k8s context (empty for current): " contexts))
+         (args (unless (string-empty-p context) (list "--context" context)))
+         (buf (generate-new-buffer
+               (if args (format "*k9s: %s*" context) "*k9s*"))))
+    (require 'ghostel)
+    (switch-to-buffer buf)
+    (ghostel-exec buf "k9s" args)
+    ;; `ghostel-exec' turns on `ghostel-mode', which resets buffer-local
+    ;; variables, so these have to be set after it.
+    (with-current-buffer buf
+      ;; Hide the cursor: stop k9s from changing it, and make evil's
+      ;; emacs-state cursor "no cursor" (evil treats a plain nil as "leave it").
+      (setq-local ghostel-ignore-cursor-change t
+                  evil-emacs-state-cursor '(nil)
+                  cursor-in-non-selected-windows nil
+                  cursor-type nil)
+      (when (bound-and-true-p evil-local-mode)
+        (evil-emacs-state)))))
+
 (use-package vterm
   :commands vterm
   :config
