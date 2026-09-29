@@ -2410,14 +2410,22 @@ A GitHub personal access token avoids the unauthenticated rate limit. Create one
     (corfu-preselect 'valid)                       ; auto-select best match so its doc shows as you type
     (corfu-scroll-margin 5)                        ; margin when scrolling
     :bind (:map corfu-map
-           ("TAB" . corfu-next)
-           ([tab] . corfu-next)
+           ("TAB" . corfu-complete)                ; insert selected candidate (cycle with C-j/C-k)
+           ([tab] . corfu-complete)
            ("S-TAB" . corfu-previous)
            ([backtab] . corfu-previous)
            ("C-g" . corfu-quit)
            ("RET" . corfu-complete))
     :init
-    (global-corfu-mode))
+    (global-corfu-mode)
+    :config
+    ;; evil-collection binds RET to `newline' in insert state for REPL buffers
+    ;; (comint, agent-shell), and evil maps win over `corfu-map'. Bind RET in
+    ;; corfu-map's insert-state map so it inserts the candidate while the popup is open.
+    (with-eval-after-load 'evil-collection
+      (evil-collection-define-key 'insert 'corfu-map
+        (kbd "RET") #'corfu-insert
+        (kbd "<return>") #'corfu-insert)))
 
   ;; Show documentation for selected candidate
   (use-package corfu-popupinfo
