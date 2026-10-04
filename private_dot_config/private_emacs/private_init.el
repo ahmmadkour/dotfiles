@@ -1430,64 +1430,39 @@ Most noise buffers never show up anyway — they only qualify as project
 buffers if their `default-directory' happens to sit under the project
 root — but the ones that do are never worth cycling through.")
 
-(defvar my/project-buffer-ring nil
-  "Snapshot of the buffer list for the cycling run in progress.")
+(defvar my/project-buffer-skip-project 'none
+  "Buffers of the current project while a project cycle command runs.
+Set to `none' when point is not inside a project.")
 
-(defvar my/project-buffer-index 0
-  "Position within `my/project-buffer-ring'.")
+(defun my/project-buffer-skip-p (_window buf _bury-or-kill)
+  "Return non-nil if BUF should be skipped when cycling project buffers."
+  (or (and (listp my/project-buffer-skip-project)
+           (not (memq buf my/project-buffer-skip-project)))
+      (string-match-p my/project-buffer-skip-regexp (buffer-name buf))))
 
-(defun my/project-buffers-mru ()
-  "Buffers of the current project, MRU first, noise filtered out.
-Falls back to every buffer when point is not inside a project."
+(defun my/cycle-project-buffer (fn)
+  "Call FN (`previous-buffer' or `next-buffer') limited to project buffers."
   (let* ((pr (project-current nil))
-         ;; Both sources are already in MRU order: `project-buffers' walks
-         ;; `buffer-list' and preserves its ordering.
-         (bufs (if pr (project-buffers pr) (buffer-list))))
-    (seq-filter (lambda (buf)
-                  (let ((name (buffer-name buf)))
-                    (and name
-                         (not (string-prefix-p " " name)) ; internal buffers
-                         (not (string-match-p my/project-buffer-skip-regexp
-                                              name)))))
-                bufs)))
-
-(defun my/cycle-project-buffer (step)
-  "Move STEP places through the project's MRU buffer list."
-  ;; Re-snapshot unless a run is already in progress. The ring check matters:
-  ;; a run that started with nothing to cycle would otherwise keep reusing
-  ;; that empty ring for as long as you hold the keys.
-  (unless (and my/project-buffer-ring
-               (memq last-command '(my/next-project-buffer
-                                    my/previous-project-buffer)))
-    (setq my/project-buffer-ring (my/project-buffers-mru)))
-  ;; A buffer killed mid-run would shift every index after it.
-  (let* ((ring (seq-filter #'buffer-live-p my/project-buffer-ring))
-         (len (length ring)))
-    (if (< len 2)
-        (message "No other buffer in this project")
-      ;; Start from where we are. If the current buffer was filtered out of
-      ;; the ring, start just behind element 0 so this press lands on it.
-      (let ((from (or (seq-position ring (current-buffer))
-                      (mod (- step) len))))
-        (setq my/project-buffer-ring ring
-              my/project-buffer-index (mod (+ from step) len))
-        (switch-to-buffer (nth my/project-buffer-index ring) nil t)))))
-
-(defun my/next-project-buffer ()
-  "Switch to the next buffer in the current project."
-  (interactive)
-  (my/cycle-project-buffer 1))
+         ;; Computed once per keypress, not once per candidate buffer.
+         (my/project-buffer-skip-project (if pr (project-buffers pr) 'none))
+         (switch-to-prev-buffer-skip #'my/project-buffer-skip-p))
+    (funcall fn)))
 
 (defun my/previous-project-buffer ()
-  "Switch to the previous buffer in the current project."
+  "Go back to the previous project buffer shown in this window."
   (interactive)
-  (my/cycle-project-buffer -1))
+  (my/cycle-project-buffer #'previous-buffer))
+
+(defun my/next-project-buffer ()
+  "Go forward to the next project buffer in this window's history."
+  (interactive)
+  (my/cycle-project-buffer #'next-buffer))
 
 (general-define-key
- ;; cmd+shift+[ / ] — cycle buffers within the current project.
+ ;; cmd+shift+[ / ] — back/forward within the current project.
  "s-{"     'my/previous-project-buffer
  "s-}"     'my/next-project-buffer
- ;; cmd+shift+ctrl+[ / ] — cycle all buffers, project or not.
+ ;; cmd+shift+ctrl+[ / ] — back/forward across all buffers.
  "C-s-{"   'previous-buffer
  "C-s-}"   'next-buffer)
 
