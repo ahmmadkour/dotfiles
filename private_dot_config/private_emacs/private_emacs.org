@@ -5,7 +5,9 @@
 
 This config is a fork of https://github.com/daviwil/emacs-from-scratch, and based on the [[https://www.youtube.com/live/74zOY-vgkyw?si=cA2QMiFN_347T5rH][Emacs From Scratch]] tutorial.
 
-Start emacs with =emacs -q -l .config/emacs/init.el=
+Start emacs with =emacs --init-directory ~/.config/emacs=
+
+Don't use =emacs -q -l .config/emacs/init.el=: =-q= also skips =early-init.el=, so packages would be installed back into =~/.config/emacs/elpa=.
 
 ** On the first run
 
@@ -16,13 +18,39 @@ Start emacs with =emacs -q -l .config/emacs/init.el=
 
 For the links in this file, if you’re looking at this file in Emacs, put your cursor on a link and press =C-c C-o= or run =M-x org-open-at-point= to open the link in your web browser.
 
+* Early Init
+
+Emacs reads =early-init.el= before it sets up packages and before it reads =init.el=. Anything that decides *where* Emacs keeps its files has to go here: by the time =init.el= runs, =package.el= has already fixed =package-user-dir= to =~/.config/emacs/elpa= and native compilation has already picked its cache directory.
+
+This block tangles to its own file, =early-init.el=, instead of =init.el=.
+
+#+begin_src emacs-lisp :tangle /Users/ahmed/.config/emacs/early-init.el
+
+  ;; Set high GC threshold during startup for faster loading
+  ;; This effectively stop GC; gcmh takes over once init.el loads it.
+  (setq gc-cons-threshold most-positive-fixnum)
+
+  ;; Keep packages, caches and state outside the config directory ~/.config/emacs.
+  ;; Must be set before loading no-littering!
+  ;; Can be set on the cli with `--init-directory <path>'
+  (setq user-emacs-directory (expand-file-name "~/.cache/emacs/"))
+
+  ;; package.el computes this from `user-emacs-directory' when it loads, which
+  ;; happens right after this file. Set it explicitly so it can't drift.
+  (setq package-user-dir (expand-file-name "elpa" user-emacs-directory))
+
+  ;; Redirect eln-cache into var/
+  (when (and (featurep 'native-compile)
+             (fboundp 'startup-redirect-eln-cache))
+    (startup-redirect-eln-cache
+     (convert-standard-filename
+      (expand-file-name "var/eln-cache/" user-emacs-directory))))
+
+#+end_src
+
 * Startup Performance
 
 #+begin_src emacs-lisp
-
-  ;; Set high GC threshold during startup for faster loading
-  ;; This effectively stop GC
-  (setq gc-cons-threshold most-positive-fixnum)
 
   (defun my/display-startup-time ()
     (message "Emacs loaded in %s with %d garbage collections."
@@ -43,17 +71,8 @@ Emacs has a built in package manager but it doesn’t make it easy to automatica
 
 #+begin_src emacs-lisp
 
-  ;; Keep cache file outside the config directory ~/.config/emacs
-  ;; Must be set before loading no-littering!
-  ;; Can be set on the cli with `--init-directory <path>`
-  (setq user-emacs-directory "~/.cache/emacs")
-
-  ;; Redirect eln-cache into var/
-  (when (and (featurep 'native-compile)
-             (fboundp 'startup-redirect-eln-cache))
-    (startup-redirect-eln-cache
-     (convert-standard-filename
-      (expand-file-name "var/eln-cache/" user-emacs-directory))))
+  ;; `user-emacs-directory', `package-user-dir' and the eln-cache are set in
+  ;; early-init.el (see "Early Init").
 
   (global-auto-revert-mode 1)
   (unless (daemonp) (server-start))

@@ -1,7 +1,3 @@
-;; Set high GC threshold during startup for faster loading
-;; This effectively stop GC
-(setq gc-cons-threshold most-positive-fixnum)
-
 (defun my/display-startup-time ()
   (message "Emacs loaded in %s with %d garbage collections."
            (format "%.2f seconds"
@@ -11,17 +7,8 @@
 
 (add-hook 'emacs-startup-hook #'my/display-startup-time)
 
-;; Keep cache file outside the config directory ~/.config/emacs
-;; Must be set before loading no-littering!
-;; Can be set on the cli with `--init-directory <path>`
-(setq user-emacs-directory "~/.cache/emacs")
-
-;; Redirect eln-cache into var/
-(when (and (featurep 'native-compile)
-           (fboundp 'startup-redirect-eln-cache))
-  (startup-redirect-eln-cache
-   (convert-standard-filename
-    (expand-file-name "var/eln-cache/" user-emacs-directory))))
+;; `user-emacs-directory', `package-user-dir' and the eln-cache are set in
+;; early-init.el (see "Early Init").
 
 (global-auto-revert-mode 1)
 (unless (daemonp) (server-start))
