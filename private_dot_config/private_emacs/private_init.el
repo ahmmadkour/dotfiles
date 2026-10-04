@@ -1704,6 +1704,9 @@ Set to `none' when point is not inside a project.")
 (use-package pyvenv
   :hook (python-ts-mode . pyvenv-mode))
 
+(use-package uv-mode
+  :hook (python-ts-mode . uv-mode-auto-activate-hook))
+
 (setq lsp-go-analyses '((shadow . t)
                         (simplifycompositelit . :json-false)))
 

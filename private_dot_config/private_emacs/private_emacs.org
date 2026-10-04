@@ -2231,7 +2231,8 @@ You can use the pyvenv package to use =virtualenv= environments in Emacs.  The =
   (use-package uv-mode
     :hook (python-ts-mode . uv-mode-auto-activate-hook))
 
-#+end_src>
+#+end_src
+
 *** Go
 
 Configuration follows the [[https://go.dev/gopls/editor/emacs][official gopls Emacs guide]] (the =lsp-mode= path). =go-ts-mode= is already wired to =lsp-deferred= via the global =lsp-mode= hook list above, so we only need the gopls-specific settings and save hooks here.
