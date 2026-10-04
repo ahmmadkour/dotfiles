@@ -1,4 +1,4 @@
-#title: Emacs Configuration
+#+title: Emacs Configuration
 #+property: header-args:emacs-lisp :tangle /Users/ahmed/.config/emacs/init.el :mkdirp yes
 
 * Intro
@@ -423,6 +423,12 @@ One note about =general= package, as autoloads fire on functions, and not on var
              (file-name-directory (directory-file-name root))
            root))))
 
+    (defun my/yank-buffer-contents ()
+      "Copy the whole buffer (ignoring narrowing) to the kill ring."
+      (interactive)
+      (kill-new (save-restriction (widen) (buffer-string)))
+      (message "Copied buffer: %s" (buffer-name)))
+
     (defun my/find-file-in-private-config ()
       "Find file in Emacs private config directory."
       (interactive)
@@ -596,7 +602,7 @@ One note about =general= package, as autoloads fire on functions, and not on var
         ;;"bu" TODO '(doom/sudo-save-buffer            :which-key "Save buffer as root")
         ;;"bx" TODO '(doom/open-scratch-buffer         :which-key "Pop up scratch buffer")
         ;;"bX" TODO '(doom/switch-to-scratch-buffer    :which-key "Switch to scratch buffer")
-        "by" '(+default/yank-buffer-contents      :which-key "Yank buffer")
+        "by" '(my/yank-buffer-contents            :which-key "Yank buffer")
         "bz" '(bury-buffer                        :which-key "Bury buffer")
         ;;"bZ" TODO '(doom/kill-buried-buffers           :which-key "Kill buried buffers")
 
@@ -1273,10 +1279,10 @@ The =my/org-font-setup= function configures various text faces to tweak the size
                     (org-level-2 . 1.1)
                     (org-level-3 . 1.05)
                     (org-level-4 . 1.0)
-                    (org-level-5 . 1.1)
-                    (org-level-6 . 1.1)
-                    (org-level-7 . 1.1)
-                    (org-level-8 . 1.1)))
+                    (org-level-5 . 1.0)
+                    (org-level-6 . 1.0)
+                    (org-level-7 . 1.0)
+                    (org-level-8 . 1.0)))
       (set-face-attribute (car face) nil :font "Cantarell" :weight 'regular :height (cdr face)))
 
     ;; Ensure that anything that should be fixed-pitch in Org files appears that way
@@ -2087,9 +2093,6 @@ References:
      "K" #'my/lsp-doc-focus))
 
 #+end_src
-
-#+RESULTS:
-| lsp-ui-mode | lsp-enable-which-key-integration |
 
 **** lsp-treemacs
 

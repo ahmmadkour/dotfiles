@@ -266,6 +266,12 @@
            (file-name-directory (directory-file-name root))
          root))))
 
+  (defun my/yank-buffer-contents ()
+    "Copy the whole buffer (ignoring narrowing) to the kill ring."
+    (interactive)
+    (kill-new (save-restriction (widen) (buffer-string)))
+    (message "Copied buffer: %s" (buffer-name)))
+
   (defun my/find-file-in-private-config ()
     "Find file in Emacs private config directory."
     (interactive)
@@ -439,7 +445,7 @@ cannot redirect a ripgrep search that is already running."
       ;;"bu" TODO '(doom/sudo-save-buffer            :which-key "Save buffer as root")
       ;;"bx" TODO '(doom/open-scratch-buffer         :which-key "Pop up scratch buffer")
       ;;"bX" TODO '(doom/switch-to-scratch-buffer    :which-key "Switch to scratch buffer")
-      "by" '(+default/yank-buffer-contents      :which-key "Yank buffer")
+      "by" '(my/yank-buffer-contents            :which-key "Yank buffer")
       "bz" '(bury-buffer                        :which-key "Bury buffer")
       ;;"bZ" TODO '(doom/kill-buried-buffers           :which-key "Kill buried buffers")
 
@@ -987,10 +993,10 @@ cannot redirect a ripgrep search that is already running."
                   (org-level-2 . 1.1)
                   (org-level-3 . 1.05)
                   (org-level-4 . 1.0)
-                  (org-level-5 . 1.1)
-                  (org-level-6 . 1.1)
-                  (org-level-7 . 1.1)
-                  (org-level-8 . 1.1)))
+                  (org-level-5 . 1.0)
+                  (org-level-6 . 1.0)
+                  (org-level-7 . 1.0)
+                  (org-level-8 . 1.0)))
     (set-face-attribute (car face) nil :font "Cantarell" :weight 'regular :height (cdr face)))
 
   ;; Ensure that anything that should be fixed-pitch in Org files appears that way
