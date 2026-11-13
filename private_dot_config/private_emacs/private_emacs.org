@@ -793,6 +793,18 @@ One note about =general= package, as autoloads fire on functions, and not on var
       (evil-set-initial-state 'messages-buffer-mode 'normal)
       (evil-set-initial-state 'dashboard-mode 'normal))
 
+  ;; Trial run of plain Emacs keybindings: turn evil off (or back on) in every
+  ;; buffer without touching the config. evil and evil-collection bindings
+  ;; only apply while `evil-mode' is on, so with it off every mode behaves as
+  ;; stock Emacs. Bound in the global map so it works in both modes.
+  (defun my/toggle-evil ()
+    "Turn `evil-mode' on or off in all buffers."
+    (interactive)
+    (evil-mode (if evil-mode -1 1))
+    (message "evil-mode %s" (if evil-mode "on" "off")))
+
+  (keymap-global-set "C-c t e" #'my/toggle-evil)
+
     (use-package evil-collection
       :after evil
       :config
@@ -1075,9 +1087,22 @@ Any package using =completing-read= automatically gets the full UI — no integr
     :init (marginalia-mode))
 
   ;; Consult — search and navigation commands (replaces counsel/swiper)
+  ;; Bindings follow the consult README: consult versions sit on the stock
+  ;; Emacs keys, and C-s / C-r stay isearch.
   (use-package consult
-    :bind (("C-s" . consult-line)
-           ("C-r" . consult-history)
+    :bind (;; C-x bindings
+           ("C-x b"   . consult-buffer)               ; orig. switch-to-buffer
+           ("C-x 4 b" . consult-buffer-other-window)  ; orig. switch-to-buffer-other-window
+           ("C-x 5 b" . consult-buffer-other-frame)   ; orig. switch-to-buffer-other-frame
+           ("C-x p b" . consult-project-buffer)       ; orig. project-switch-to-buffer
+           ;; M-g bindings (goto-map)
+           ("M-g g"   . consult-goto-line)            ; orig. goto-line
+           ("M-g M-g" . consult-goto-line)            ; orig. goto-line
+           ("M-g i"   . consult-imenu)                ; orig. imenu
+           ;; M-s bindings (search-map)
+           ("M-s l"   . consult-line)
+           ("M-s r"   . consult-ripgrep)
+           ("M-s d"   . consult-find)
            :map minibuffer-local-map
            ("C-r" . consult-history))
     :custom
