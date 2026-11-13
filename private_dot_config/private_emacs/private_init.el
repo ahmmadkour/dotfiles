@@ -701,14 +701,22 @@ cannot redirect a ripgrep search that is already running."
 (setq ns-right-alternate-modifier 'none) ; right Option = literal Alt (# on Opt-3)
 
 ;; Ergonomic window navigation with C-M-h/j/k/l (Ctrl+Option + vim keys)
-;; Using :keymaps 'override to take precedence over mode-specific bindings
+;; With evil on: :keymaps 'override + :states beats evil's state maps.
 (general-define-key
  :keymaps 'override
  :states '(normal insert visual emacs motion)
- "C-M-h" 'evil-window-left
- "C-M-j" 'evil-window-down
- "C-M-k" 'evil-window-up
- "C-M-l" 'evil-window-right)
+ "C-M-h" 'windmove-left
+ "C-M-j" 'windmove-down
+ "C-M-k" 'windmove-up
+ "C-M-l" 'windmove-right)
+
+;; With evil off: `bind-keys*' puts them in `override-global-map', which
+;; beats major- and minor-mode maps.
+(bind-keys*
+ ("C-M-h" . windmove-left)
+ ("C-M-j" . windmove-down)
+ ("C-M-k" . windmove-up)
+ ("C-M-l" . windmove-right))
 
 (use-package vundo
   :defer t

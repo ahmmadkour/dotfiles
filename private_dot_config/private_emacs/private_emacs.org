@@ -909,21 +909,31 @@ This is to get Option-3 to return =#= and keep right option as it is
 
 ** Window Navigation
 
-Ergonomic window navigation with =C-M-h/j/k/l= (Ctrl+Option + vim keys). This avoids conflict with Aerospace which intercepts =M-h/j/k/l= at the OS level.
+Ergonomic window navigation with =C-M-h/j/k/l= (Ctrl+Option + vim keys), using the built-in =windmove= commands so the keys work with evil on or off.
+
+These keys shadow the stock =C-M-h= (=mark-defun=), =C-M-j= (=default-indent-new-line=), =C-M-k= (=kill-sexp=) and =C-M-l= (=reposition-window=).
 
 In org-mode, use =M-arrow= keys for heading promotion/demotion instead (still available).
 
 #+begin_src emacs-lisp
 
   ;; Ergonomic window navigation with C-M-h/j/k/l (Ctrl+Option + vim keys)
-  ;; Using :keymaps 'override to take precedence over mode-specific bindings
+  ;; With evil on: :keymaps 'override + :states beats evil's state maps.
   (general-define-key
    :keymaps 'override
    :states '(normal insert visual emacs motion)
-   "C-M-h" 'evil-window-left
-   "C-M-j" 'evil-window-down
-   "C-M-k" 'evil-window-up
-   "C-M-l" 'evil-window-right)
+   "C-M-h" 'windmove-left
+   "C-M-j" 'windmove-down
+   "C-M-k" 'windmove-up
+   "C-M-l" 'windmove-right)
+
+  ;; With evil off: `bind-keys*' puts them in `override-global-map', which
+  ;; beats major- and minor-mode maps.
+  (bind-keys*
+   ("C-M-h" . windmove-left)
+   ("C-M-j" . windmove-down)
+   ("C-M-k" . windmove-up)
+   ("C-M-l" . windmove-right))
 
 #+end_src
 
