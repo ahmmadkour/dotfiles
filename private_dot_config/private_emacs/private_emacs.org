@@ -898,12 +898,12 @@ Jump to any visible position on screen by typing a few characters.
 
 ** Remap option key
 
-This is to get Option-3 to return =#= and keep right option as it is
+Both Option keys act as Meta. =#= is typed with Shift-3, so no Option key is needed for it.
 
 #+begin_src emacs-lisp
 
-  (setq ns-alternate-modifier 'meta) ; left Option = Meta
-  (setq ns-right-alternate-modifier 'none) ; right Option = literal Alt (# on Opt-3)
+  (setq ns-alternate-modifier 'meta)       ; left Option = Meta
+  (setq ns-right-alternate-modifier 'left) ; right Option = same as left (Meta)
 
 #+end_src
 

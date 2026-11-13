@@ -697,8 +697,8 @@ cannot redirect a ripgrep search that is already running."
   "si" '(consult-imenu :which-key "jump to symbol")
   "sl" '(consult-locate :which-key "locate file"))
 
-(setq ns-alternate-modifier 'meta) ; left Option = Meta
-(setq ns-right-alternate-modifier 'none) ; right Option = literal Alt (# on Opt-3)
+(setq ns-alternate-modifier 'meta)       ; left Option = Meta
+(setq ns-right-alternate-modifier 'left) ; right Option = same as left (Meta)
 
 ;; Ergonomic window navigation with C-M-h/j/k/l (Ctrl+Option + vim keys)
 ;; With evil on: :keymaps 'override + :states beats evil's state maps.
