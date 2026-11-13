@@ -1119,8 +1119,12 @@ cannot redirect a ripgrep search that is already running."
       ("mw" "Weight" table-line (file+headline "~/Workspace/org/Metrics.org" "Weight")
        "| %U | %^{Weight} | %^{Notes} |" :kill-buffer t)))
 
-  (define-key global-map (kbd "C-c j")
-    (lambda () (interactive) (org-capture nil "jj")))
+  (defun my/org-capture-journal ()
+    "Capture a new journal entry."
+    (interactive)
+    (org-capture nil "jj"))
+
+  (define-key global-map (kbd "C-c j") #'my/org-capture-journal)
 
   (my/org-font-setup))
 
