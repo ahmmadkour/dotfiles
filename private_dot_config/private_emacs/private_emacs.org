@@ -1043,7 +1043,12 @@ Check out [[https://github.com/seagle0128/doom-modeline#customize][configuration
     :diminish which-key-mode
     :config
     (setq which-key-idle-delay 0.4)
-    (which-key-mode))
+    (which-key-mode)
+    ;; Name global C-c prefixes so they don't show as "+prefix"
+    (which-key-add-key-based-replacements
+      "C-c p" "project"
+      "C-c t" "toggles"
+      "C-c n" "org-roam"))
 
 
 #+end_src

@@ -778,7 +778,12 @@ cannot redirect a ripgrep search that is already running."
   :diminish which-key-mode
   :config
   (setq which-key-idle-delay 0.4)
-  (which-key-mode))
+  (which-key-mode)
+  ;; Name global C-c prefixes so they don't show as "+prefix"
+  (which-key-add-key-based-replacements
+    "C-c p" "project"
+    "C-c t" "toggles"
+    "C-c n" "org-roam"))
 
 ;; Vertico — vertical completion UI
 (use-package vertico
